@@ -30,12 +30,7 @@ Add to your **Gemfile**:
 ### Define three methods
 
     class MockApplePiesController < ApplicationController
-      include TypicalSituation
-
-      # Symbolized, underscored version of the model (class) to use as the resource.
-      def model_type
-        :mock_apple_pie
-      end
+      typify :mock_apple_pie
 
       # The collection of model instances.
       def collection

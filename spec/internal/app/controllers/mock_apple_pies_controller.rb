@@ -1,14 +1,9 @@
 # frozen_string_literal: true
 
 class MockApplePiesController < ApplicationController
-  include TypicalSituation
+  typify :mock_apple_pie
 
   attr_accessor :current_grandma
-
-  # Symbolized, underscored version of the model (class) to use.
-  def model_type
-    :mock_apple_pie
-  end
 
   # The collection of model instances.
   def collection

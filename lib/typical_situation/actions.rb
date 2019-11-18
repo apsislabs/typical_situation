@@ -3,41 +3,49 @@
 module TypicalSituation
   # Standard REST/CRUD actions.
   module Actions
-    def index
-      get_resources
-      respond_with_resources
-    end
+    extend ActiveSupport::Concern
 
-    def show
-      get_resource
-      respond_with_resource
-    end
+    included do
+      def index
+        get_resources
+        respond_with_resources
+      end
 
-    def edit
-      get_resource
-      respond_with_resource
-    end
+      def show
+        get_resource
+        respond_with_resource
+      end
 
-    def new
-      new_resource
-      respond_with_resource
-    end
+      def update
+        get_resource
+        update_resource(@resource, create_params)
+        respond_as_changed
+      end
 
-    def update
-      get_resource
-      update_resource(@resource, create_params)
-      respond_as_changed
-    end
+      def destroy
+        get_resource
+        destroy_resource(@resource)
+        respond_as_gone
+      end
 
-    def destroy
-      get_resource
-      destroy_resource(@resource)
-      respond_as_gone
-    end
+      def create
+        @resource = create_resource(update_params)
+        respond_as_created
+      end
 
-    def create
-      @resource = create_resource(update_params)
-      respond_as_created
+      # Only definte HTML routes if we are
+      # not in JSON only mode
+      unless @__typify_json_only
+        def edit
+          get_resource
+          respond_with_resource
+        end
+
+        def new
+          new_resource
+          respond_with_resource
+        end
+      end
     end
   end
 end

@@ -3,135 +3,145 @@
 module TypicalSituation
   # Rails MIME responses.
   module Responses
-    # Return the collection as HTML or JSON
-    #
-    def respond_with_resources
-      respond_to do |format|
-        yield(format) if block_given?
+    extend ActiveSupport::Concern
 
-        format.html do
-          set_collection_instance
-          render
-        end
-        format.json do
-          render json: serialize_resources(@resources)
-        end
-      end
-    end
+    included do
+      # Return the collection as HTML or JSON
+      #
+      def respond_with_resources
+        respond_to do |format|
+          yield(format) if block_given?
 
-    # Return the resource as HTML or JSON
-    #
-    # A provided block is passed the #respond_to format to further define responses.
-    #
-    def respond_with_resource
-      respond_to do |format|
-        yield(format) if block_given?
-
-        format.html do
-          set_single_instance
-          render
-        end
-        format.json do
-          render json: serialize_resource(@resource)
+          format.html do
+            set_collection_instance
+            render
+          end
+          format.json do
+            render json: serialize_resources(@resources)
+          end
         end
       end
-    end
 
-    def respond_as_changed
-      if has_errors?
-        respond_as_error
-      else
+      # Return the resource as HTML or JSON
+      #
+      # A provided block is passed the #respond_to format to further define responses.
+      #
+      def respond_with_resource
         respond_to do |format|
           yield(format) if block_given?
 
           format.html do
             set_single_instance
-            changed_so_redirect || render
+            render
           end
+
           format.json do
             render json: serialize_resource(@resource)
           end
         end
       end
-    end
 
-    def respond_as_created
-      if has_errors?
-        respond_as_error
-      else
+      def respond_as_changed
+        if has_errors?
+          respond_as_error
+        else
+          respond_to do |format|
+            yield(format) if block_given?
+
+            format.html do
+              set_single_instance
+              changed_so_redirect || render
+            end
+
+            format.json do
+              render json: serialize_resource(@resource)
+            end
+          end
+        end
+      end
+
+      def respond_as_created
+        if has_errors?
+          respond_as_error
+        else
+          respond_to do |format|
+            yield(format) if block_given?
+
+            format.html do
+              set_single_instance
+              changed_so_redirect || render
+            end
+
+            format.json do
+              render json: serialize_resource(@resource),
+                     location: location_url,
+                     status: :created
+            end
+          end
+        end
+      end
+
+      def respond_as_error
         respond_to do |format|
           yield(format) if block_given?
 
           format.html do
             set_single_instance
-            changed_so_redirect || render
+            render action: (@resource.new_record? ? :new : :edit),
+                   status: :unprocessable_entity
           end
+
           format.json do
-            render json: serialize_resource(@resource),
-                   location: location_url,
-                   status: :created
+            render json: serialize_resource(@resource, methods: [:errors]),
+                   status: :unprocessable_entity
           end
         end
       end
-    end
 
-    def respond_as_error
-      respond_to do |format|
-        yield(format) if block_given?
+      def respond_as_gone
+        if has_errors?
+          respond_as_error
+        else
+          respond_to do |format|
+            yield(format) if block_given?
 
-        format.html do
-          set_single_instance
-          render action: (@resource.new_record? ? :new : :edit),
-                 status: :unprocessable_entity
-        end
-        format.json do
-          render json: serialize_resource(@resource, methods: [:errors]),
-                 status: :unprocessable_entity
+            format.html do
+              set_single_instance
+              gone_so_redirect || render
+            end
+
+            format.json do
+              head :no_content
+            end
+          end
         end
       end
-    end
 
-    def respond_as_gone
-      if has_errors?
-        respond_as_error
-      else
+      def respond_as_not_found
         respond_to do |format|
           yield(format) if block_given?
 
           format.html do
-            set_single_instance
-            gone_so_redirect || render
+            raise ActionController::RoutingError, 'Not Found'
           end
+
           format.json do
-            head :no_content
+            head :not_found
           end
         end
       end
-    end
 
-    def respond_as_not_found
-      respond_to do |format|
-        yield(format) if block_given?
-
-        format.html do
-          raise ActionController::RoutingError, 'Not Found'
-        end
-        format.json do
-          head :not_found
-        end
+      # HTML response when @resource saved or updated.
+      def changed_so_redirect
+        redirect_to action: :show, id: @resource.to_param
+        true # return true when redirecting
       end
-    end
 
-    # HTML response when @resource saved or updated.
-    def changed_so_redirect
-      redirect_to action: :show, id: @resource.to_param
-      true # return true when redirecting
-    end
-
-    # HTML response when @resource deleted.
-    def gone_so_redirect
-      redirect_to action: :index
-      true # return true when redirecting
+      # HTML response when @resource deleted.
+      def gone_so_redirect
+        redirect_to action: :index
+        true # return true when redirecting
+      end
     end
   end
 end
