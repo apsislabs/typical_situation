@@ -25,7 +25,7 @@ module TypicalSituation
 
     def update
       get_resource
-      update_resource(@resource, create_params)
+      update_resource(@resource, update_params)
       respond_as_changed
     end
 
@@ -36,7 +36,7 @@ module TypicalSituation
     end
 
     def create
-      @resource = create_resource(update_params)
+      @resource = create_resource(create_params)
       respond_as_created
     end
   end
