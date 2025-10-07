@@ -27,15 +27,16 @@ Add to your **Gemfile**:
 
 ## Usage
 
-### Define three methods
+### Define your model and methods
+
+**Modern syntax (recommended):**
 
     class MockApplePiesController < ApplicationController
       include TypicalSituation
 
-      # Symbolized, underscored version of the model (class) to use as the resource.
-      def model_type
-        :mock_apple_pie
-      end
+      typical_situation :mock_apple_pie
+
+      private
 
       # The collection of model instances.
       def collection
@@ -47,6 +48,37 @@ Add to your **Gemfile**:
         collection.find_by_id(id)
       end
     end
+
+**Legacy syntax (still supported):**
+
+    class MockApplePiesController < ApplicationController
+      include TypicalSituation
+
+      # Symbolized, underscored version of the model (class) to use as the resource.
+      def model_type
+        :mock_apple_pie
+      end
+
+      private
+
+      # The collection of model instances.
+      def collection
+        current_user.mock_apple_pies
+      end
+
+      # Find a model instance by ID.
+      def find_in_collection(id)
+        collection.find_by_id(id)
+      end
+    end
+
+### Syntax Options
+
+**`typical_situation` class method** - The recommended modern syntax that provides a clean, Rails-like declarative style.
+
+**`model_type` instance method** - The original syntax that's still fully supported for backward compatibility.
+
+Both syntaxes are functionally identical and can be used interchangeably. The `typical_situation` method is simply syntactic sugar that defines the `model_type` method under the hood.
 
 ### Get a fully functional REST API
 
@@ -155,6 +187,37 @@ Like `Blueprinter`,
 
       def serializable_resource(resource)
         MockApplePieSerializer.new(resource).serializable_hash
+      end
+    end
+
+##### Alba
+
+[Alba](https://github.com/okuramasafumi/alba) is a fast, modern JSON serializer. Like `Blueprinter` and `Fast JSON API`, it's best suited to being overridden at the controller level:
+
+    class MockApplePieResource
+      include Alba::Resource
+
+      attributes :id, :ingredients
+      
+      association :grandma, resource: GrandmaResource
+    end
+
+    class MockApplePiesController < ApplicationController
+      include TypicalSituation
+      typical_situation :mock_apple_pie
+
+      private
+
+      def serializable_resource(resource)
+        MockApplePieResource.new(resource).serialize
+      end
+
+      def collection
+        current_user.mock_apple_pies
+      end
+
+      def find_in_collection(id)
+        collection.find_by_id(id)
       end
     end
 

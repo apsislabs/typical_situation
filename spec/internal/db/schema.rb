@@ -11,4 +11,9 @@ ActiveRecord::Schema.define do
     t.integer 'grandma_id'
     t.string  'ingredients'
   end
+
+  create_table 'test_models', force: true do |t|
+    t.integer 'grandma_id'
+    t.string  'name'
+  end
 end
