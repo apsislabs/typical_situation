@@ -1,8 +1,21 @@
-name: Spec CI
+name: CI
 
 on: [push, pull_request]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3
+          bundler-cache: true
+      - name: Run Standard RB
+        run: bundle exec standardrb
+
   build:
     runs-on: ubuntu-latest
     name: Ruby ${{ matrix.ruby }} - Rails ${{ matrix.rails }}
