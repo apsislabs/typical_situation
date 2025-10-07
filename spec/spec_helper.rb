@@ -14,11 +14,6 @@ require 'factory_bot_rails'
 Dir[File.dirname(__FILE__) + '/factories/*.rb'].each { |f| require f }
 
 RSpec.configure do |config|
-  if Rails::VERSION::MAJOR < 5
-    require 'rails/forward_compatible_controller_tests'
-    config.include Rails::ForwardCompatibleControllerTests, type: :controller
-  end
-
   config.include FactoryBot::Syntax::Methods
 
   # Enable flags like --only-failures and --next-failure

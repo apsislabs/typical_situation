@@ -1,0 +1,29 @@
+name: Spec CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Ruby ${{ matrix.ruby }} - Rails ${{ matrix.rails }}
+    strategy:
+      matrix:
+        ruby: [3.0, 3.1, 3.2, 3.3]
+        rails: [rails_7.0, rails_7.1, rails_8.0]
+        exclude:
+          - ruby: 3.0
+            rails: rails_8.0  # Rails 8 requires Ruby 3.1+
+    env:
+      RUBY_VERSION: ${{ matrix.ruby }}
+      RAILS_VERSION: ${{ matrix.rails }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby ${{ matrix.ruby }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Install dependencies
+        run: bundle exec appraisal install
+      - name: Run specs
+        run: bundle exec appraisal ${{ matrix.rails }} rspec

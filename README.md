@@ -1,4 +1,4 @@
-# Typical Situation [![Build Status](https://travis-ci.org/apsislabs/typical_situation.svg?branch=master)](https://travis-ci.org/apsislabs/typical_situation)
+# Typical Situation [![Spec CI](https://github.com/apsislabs/typical_situation/workflows/Spec%20CI/badge.svg)](https://github.com/apsislabs/typical_situation/actions)
 
 The missing Ruby on Rails ActionController REST API mixin.
 
@@ -8,22 +8,22 @@ A Ruby mixin (module) providing the seven standard resource actions & responses 
 
 Tested in:
 
-- Rails 4.2
-- Rails 5.2
-- Rails 6.0
+- Rails 7.0
+- Rails 7.1  
+- Rails 8.0
 
 Against Ruby versions:
 
-- 2.2
-- 2.3
-- 2.4
-- 2.5
+- 3.0
+- 3.1
+- 3.2
+- 3.3
 
 Add to your **Gemfile**:
 
     gem 'typical_situation'
 
-**Rails 3.2**: For Rails 3.2 support, see https://github.com/mars/typical_situation
+**Legacy Versions**: For Rails 4.x/5.x/6.x support, see older versions of this gem. Ruby 3.0+ is required.
 
 ## Usage
 
