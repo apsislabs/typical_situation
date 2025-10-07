@@ -117,6 +117,75 @@ The library is split into modules:
 - [operations](https://github.com/mars/typical_situation/blob/master/lib/typical_situation/operations.rb) - loading, changing, & persisting the model
 - [responses](https://github.com/mars/typical_situation/blob/master/lib/typical_situation/responses.rb) - HTTP responses & redirects
 
+#### Common Customization Hooks
+
+**Scoped Collections** - Filter the collection based on user permissions or other criteria:
+
+```ruby
+def scoped_resource
+  if current_user.admin?
+    collection
+  else
+    collection.where(published: true)
+  end
+end
+```
+
+**Custom Lookup** - Use different attributes for finding resources:
+
+```ruby
+def find_resource(param)
+  collection.find_by!(slug: param)
+end
+```
+
+**Custom Redirects** - Control where users go after actions:
+
+```ruby
+def after_resource_created_path(resource)
+  { action: :index }
+end
+
+def after_resource_updated_path(resource)
+  edit_resource_path(resource)
+end
+
+def after_resource_destroyed_path(resource)
+  { action: :index }
+end
+```
+
+**Sorting** - Set default sorting for index pages:
+
+```ruby
+def default_sorting_attribute
+  :created_at
+end
+
+def default_sorting_direction
+  :desc
+end
+```
+
+**Pagination** - Bring your own pagination solution:
+
+```ruby
+# Kaminari
+def paginate_resources(resources)
+  resources.page(params[:page]).per(params[:per_page] || 25)
+end
+
+# will_paginate
+def paginate_resources(resources)
+  resources.paginate(page: params[:page], per_page: params[:per_page] || 25)
+end
+
+# Custom pagination
+def paginate_resources(resources)
+  resources.limit(20).offset((params[:page].to_i - 1) * 20)
+end
+```
+
 #### Serialization
 
 Under the hood `TypicalSituation` calls `to_json` on your `ActiveRecord` models. This isn't always the optimal way to serialize resources, though, and so `TypicalSituation` offers a simple means of overriding the base Serialization --- either on an individual controller, or for your entire application.

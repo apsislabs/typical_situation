@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'typical_situation/identity'
-require 'typical_situation/actions'
-require 'typical_situation/operations'
-require 'typical_situation/responses'
+require "typical_situation/identity"
+require "typical_situation/actions"
+require "typical_situation/operations"
+require "typical_situation/responses"
 
 module TypicalSituation
   include Identity
@@ -18,7 +18,7 @@ module TypicalSituation
 
   module ClassMethods
     # Syntactic sugar for defining model_type
-    # 
+    #
     # Example:
     #   class PostsController < ApplicationController
     #     include TypicalSituation

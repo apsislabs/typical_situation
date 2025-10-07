@@ -1,0 +1,36 @@
+name: Publish Gem
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true
+      - name: Release Gem
+        if: contains(github.ref, 'refs/tags/v')
+        env:
+          RUBYGEMS_API_KEY: ${{secrets.RUBYGEMS_API_KEY}}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          echo "Setting up gem credentials..."
+          mkdir -p ~/.gem
+
+          cat << EOF > ~/.gem/credentials
+          ---
+          :rubygems_api_key: ${RUBYGEMS_API_KEY}
+          EOF
+
+          chmod 0600 ~/.gem/credentials
+
+          bundle exec rake build
+
+          echo "Running gem release task..."
+          gem push pkg/typical_situation-${TAG#v}.gem
