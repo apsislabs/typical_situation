@@ -137,13 +137,13 @@ module TypicalSituation
     # HTML response when @resource saved or updated.
     def changed_so_redirect
       redirect_to after_resource_updated_path(@resource)
-      true # return true when redirecting
+      true
     end
 
     # HTML response when @resource deleted.
     def gone_so_redirect
       redirect_to after_resource_destroyed_path(@resource)
-      true # return true when redirecting
+      true
     end
   end
 end

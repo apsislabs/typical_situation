@@ -180,11 +180,34 @@ def paginate_resources(resources)
   resources.paginate(page: params[:page], per_page: params[:per_page] || 25)
 end
 
-# Custom pagination
-def paginate_resources(resources)
-  resources.limit(20).offset((params[:page].to_i - 1) * 20)
+ # Custom pagination
+ def paginate_resources(resources)
+   resources.limit(20).offset((params[:page].to_i - 1) * 20)
+ end
+ ```
+
+**Strong Parameters** - Control which parameters are allowed for create and update operations:
+
+```ruby
+class PostsController < ApplicationController
+  include TypicalSituation
+  typical_situation :post
+
+  private
+
+  # Only allow title and content for new posts
+  def permitted_create_params
+    [:title, :content]
+  end
+
+  # Allow title, content, and published for updates
+  def permitted_update_params
+    [:title, :content, :published]
+  end
 end
 ```
+
+By default, `TypicalSituation` permits all parameters (`permit!`) when these methods return `nil` or an empty array. Override them to restrict parameters for security.
 
 #### Authorization
 

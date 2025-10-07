@@ -281,5 +281,77 @@ RSpec.describe MockApplePiesController, type: :controller do
         expect(permitted[:other]).to be_nil
       end
     end
+
+    describe "strong params" do
+      let(:full_params) { ActionController::Parameters.new(mock_apple_pie: {ingredients: "love", grandma_id: 1, secret_field: "hidden"}) }
+
+      before do
+        allow(controller).to receive(:params).and_return(full_params)
+      end
+
+      describe "#permitted_create_params" do
+        it "returns nil by default" do
+          expect(controller.permitted_create_params).to be_nil
+        end
+      end
+
+      describe "#permitted_update_params" do
+        it "returns nil by default" do
+          expect(controller.permitted_update_params).to be_nil
+        end
+      end
+
+      describe "#create_params" do
+        it "permits all params when permitted_create_params is nil" do
+          allow(controller).to receive(:permitted_create_params).and_return(nil)
+          result = controller.create_params
+          expect(result[:ingredients]).to eq("love")
+          expect(result[:grandma_id]).to eq(1)
+          expect(result[:secret_field]).to eq("hidden")
+        end
+
+        it "permits all params when permitted_create_params is empty" do
+          allow(controller).to receive(:permitted_create_params).and_return([])
+          result = controller.create_params
+          expect(result[:ingredients]).to eq("love")
+          expect(result[:grandma_id]).to eq(1)
+          expect(result[:secret_field]).to eq("hidden")
+        end
+
+        it "filters params when permitted_create_params is specified" do
+          allow(controller).to receive(:permitted_create_params).and_return([:ingredients])
+          result = controller.create_params
+          expect(result[:ingredients]).to eq("love")
+          expect(result[:grandma_id]).to be_nil
+          expect(result[:secret_field]).to be_nil
+        end
+      end
+
+      describe "#update_params" do
+        it "permits all params when permitted_update_params is nil" do
+          allow(controller).to receive(:permitted_update_params).and_return(nil)
+          result = controller.update_params
+          expect(result[:ingredients]).to eq("love")
+          expect(result[:grandma_id]).to eq(1)
+          expect(result[:secret_field]).to eq("hidden")
+        end
+
+        it "permits all params when permitted_update_params is empty" do
+          allow(controller).to receive(:permitted_update_params).and_return([])
+          result = controller.update_params
+          expect(result[:ingredients]).to eq("love")
+          expect(result[:grandma_id]).to eq(1)
+          expect(result[:secret_field]).to eq("hidden")
+        end
+
+        it "filters params when permitted_update_params is specified" do
+          allow(controller).to receive(:permitted_update_params).and_return([:ingredients])
+          result = controller.update_params
+          expect(result[:ingredients]).to eq("love")
+          expect(result[:grandma_id]).to be_nil
+          expect(result[:secret_field]).to be_nil
+        end
+      end
+    end
   end
 end
