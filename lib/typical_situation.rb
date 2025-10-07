@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'typical_situation/identity'
-require 'typical_situation/permissions'
-require 'typical_situation/actions'
-require 'typical_situation/operations'
-require 'typical_situation/responses'
+require "typical_situation/identity"
+require "typical_situation/permissions"
+require "typical_situation/actions"
+require "typical_situation/operations"
+require "typical_situation/responses"
 
 module TypicalSituation
   class Error < StandardError; end
