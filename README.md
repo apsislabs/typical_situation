@@ -186,6 +186,42 @@ def paginate_resources(resources)
 end
 ```
 
+#### Authorization
+
+Control access to resources by overriding the `authorized?` method:
+
+```ruby
+class PostsController < ApplicationController
+  include TypicalSituation
+  typical_situation :post
+
+  private
+
+  def authorized?(action, resource = nil)
+    case action
+    when :destroy, :update, :edit
+      resource&.user == current_user || current_user&.admin?
+    when :show
+      resource&.published? || resource&.user == current_user
+    else
+      true
+    end
+  end
+end
+```
+
+**CanCanCan**: `can?(action, resource || model_class)`
+
+**Pundit**: `policy(resource || model_class).public_send("#{action}?")`
+
+**Custom responses**:
+
+```ruby
+def respond_as_forbidden
+  redirect_to login_path, alert: "Access denied"
+end
+```
+
 #### Serialization
 
 Under the hood `TypicalSituation` calls `to_json` on your `ActiveRecord` models. This isn't always the optimal way to serialize resources, though, and so `TypicalSituation` offers a simple means of overriding the base Serialization --- either on an individual controller, or for your entire application.
