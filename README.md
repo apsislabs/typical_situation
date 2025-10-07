@@ -14,7 +14,6 @@ Tested in:
 
 Against Ruby versions:
 
-- 3.1
 - 3.2
 - 3.3
 - 3.4
