@@ -395,9 +395,6 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/apsisl
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
 
-## Legal Disclaimer
-
-Apsis Labs, LLP is not a law firm and does not provide legal advice. The information in this repo and software does not constitute legal advice, nor does usage of this software create an attorney-client relationship.
 
 ---
 
