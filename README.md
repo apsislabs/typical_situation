@@ -35,6 +35,7 @@ Basic usage is to declare the `typical_situation`, and then two required helper 
 class PostsController < ApplicationController
   include TypicalSituation
 
+  # Symbolized, underscored version of the model to use as the resource.
   typical_situation :post # => maps to the Post model
 
   private
