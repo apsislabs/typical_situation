@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.version = TypicalSituation::VERSION
   s.authors = ["Mars Hall", "Wyatt Kirby"]
   s.email = ["m@marsorange.com", "wyatt@apsis.io"]
-  s.homepage = "https://github.com/mars/typical_situation"
+  s.homepage = "https://github.com/apsislabs/typical_situation"
   s.summary = "The missing Rails ActionController REST API mixin."
   s.description = "A module providing the seven standard resource actions & responses for an ActiveRecord :model_type & :collection."
 
