@@ -9,7 +9,6 @@ require "typical_situation/responses"
 module TypicalSituation
   include Identity
   include Permissions
-  include Actions
   include Operations
   include Responses
 
@@ -31,10 +30,28 @@ module TypicalSituation
     #   def model_type
     #     :post
     #   end
-    def typical_situation(model_type_symbol)
+    def typical_situation(model_type_symbol, only: nil)
       define_method :model_type do
         model_type_symbol
       end
+
+      if only
+        only.each do |action|
+          if TypicalSituation::Actions.method_defined?(action)
+            define_method(action, TypicalSituation::Actions.instance_method(action))
+          end
+        end
+      else
+        include TypicalSituation::Actions
+      end
+    end
+
+    def typical_rest(model_type_symbol)
+      typical_situation(model_type_symbol, only: nil)
+    end
+
+    def typical_crud(model_type_symbol)
+      typical_situation(model_type_symbol, only: %i[create show update destroy])
     end
   end
 
