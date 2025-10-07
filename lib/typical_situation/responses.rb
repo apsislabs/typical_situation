@@ -68,8 +68,8 @@ module TypicalSituation
           end
           format.json do
             render json: serialize_resource(@resource),
-                   location: location_url,
-                   status: :created
+              location: location_url,
+              status: :created
           end
         end
       end
@@ -82,11 +82,11 @@ module TypicalSituation
         format.html do
           set_single_instance
           render action: (@resource.new_record? ? :new : :edit),
-                 status: :unprocessable_entity
+            status: :unprocessable_entity
         end
         format.json do
           render json: serialize_resource(@resource, methods: [:errors]),
-                 status: :unprocessable_entity
+            status: :unprocessable_entity
         end
       end
     end
@@ -114,7 +114,7 @@ module TypicalSituation
         yield(format) if block_given?
 
         format.html do
-          raise ActionController::RoutingError, 'Not Found'
+          raise ActionController::RoutingError, "Not Found"
         end
         format.json do
           head :not_found
@@ -122,16 +122,35 @@ module TypicalSituation
       end
     end
 
+    def respond_as_forbidden
+      respond_to do |format|
+        format.html { render plain: "Forbidden", status: :forbidden }
+        format.json { head :forbidden }
+      end
+    end
+
+    def after_resource_created_path(resource)
+      {action: :show, id: resource.id}
+    end
+
+    def after_resource_updated_path(resource)
+      {action: :show, id: resource.id}
+    end
+
+    def after_resource_destroyed_path(_resource)
+      {action: :index}
+    end
+
     # HTML response when @resource saved or updated.
     def changed_so_redirect
-      redirect_to action: :show, id: @resource.to_param
-      true # return true when redirecting
+      redirect_to after_resource_updated_path(@resource)
+      true
     end
 
     # HTML response when @resource deleted.
     def gone_so_redirect
-      redirect_to action: :index
-      true # return true when redirecting
+      redirect_to after_resource_destroyed_path(@resource)
+      true
     end
   end
 end

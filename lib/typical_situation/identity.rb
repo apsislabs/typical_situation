@@ -5,7 +5,7 @@ module TypicalSituation
   module Identity
     # Symbolized, underscored version of the model (class) to use.
     def model_type
-      raise(NotImplementedError, '#model_type must be defined in the TypicalSituation implementation.')
+      raise(NotImplementedError, "#model_type must be defined in the TypicalSituation implementation.")
     end
 
     def model_params
@@ -38,12 +38,12 @@ module TypicalSituation
 
     # The collection of model instances.
     def collection
-      raise(NotImplementedError, '#collection must be defined in the TypicalSituation implementation.')
+      raise(NotImplementedError, "#collection must be defined in the TypicalSituation implementation.")
     end
 
     # Find a model instance by ID.
     def find_in_collection(_id)
-      raise(NotImplementedError, '#find_in_collection must be defined in the TypicalSituation implementation.')
+      raise(NotImplementedError, "#find_in_collection must be defined in the TypicalSituation implementation.")
     end
 
     def include_root?

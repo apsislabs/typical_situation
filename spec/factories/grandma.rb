@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :grandma do
-    name { 'Annie' }
+    name { "Annie" }
 
     transient do
       pies_count { 5 }

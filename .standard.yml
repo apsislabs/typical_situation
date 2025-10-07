@@ -1,0 +1,12 @@
+# Standard Ruby configuration
+# https://github.com/testdouble/standard
+
+ruby_version: 3.4
+
+ignore:
+  - 'spec/internal/**/*'
+  - 'pkg/**/*'
+  - 'vendor/**/*'
+  - 'tmp/**/*'
+
+fix: true

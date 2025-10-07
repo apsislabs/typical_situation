@@ -3,12 +3,11 @@
 class MockApplePiesController < ApplicationController
   include TypicalSituation
 
+  typical_situation :mock_apple_pie
+
   attr_accessor :current_grandma
 
-  # Symbolized, underscored version of the model (class) to use.
-  def model_type
-    :mock_apple_pie
-  end
+  private
 
   # The collection of model instances.
   def collection

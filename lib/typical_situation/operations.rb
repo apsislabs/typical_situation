@@ -4,8 +4,32 @@ module TypicalSituation
   # Model operations.
   # Assume that we're working w/ an ActiveRecord association collection.
   module Operations
+    def scoped_resource
+      collection
+    end
+
+    def find_resource(param)
+      find_in_collection(param)
+    end
+
+    def default_sorting_attribute
+      nil
+    end
+
+    def default_sorting_direction
+      :asc
+    end
+
+    def paginate_resources(resources)
+      resources
+    end
+
+    def pagination_params
+      params.permit(:page, :per_page)
+    end
+
     def get_resource
-      if (@resource = find_in_collection(params[:id]))
+      if (@resource = find_resource(params[:id]))
         set_single_instance
         @resource
       else
@@ -18,7 +42,7 @@ module TypicalSituation
     end
 
     def get_resources
-      @resources = collection
+      @resources = paginate_resources(apply_sorting(scoped_resource))
       set_collection_instance
       @resources
     end
@@ -59,7 +83,7 @@ module TypicalSituation
 
     def serialize_resources(resources)
       if include_root?
-        return { plural_model_type => serializable_resource(resources) }
+        return {plural_model_type => serializable_resource(resources)}
       end
 
       serializable_resource(resources).to_json(root: false)
@@ -72,13 +96,20 @@ module TypicalSituation
     # Set the singular instance variable named after the model. Modules are delimited with "_".
     # Example: a MockApplePie resource is set to ivar @mock_apple_pie.
     def set_single_instance
-      instance_variable_set(:"@#{model_type.to_s.gsub('/', '__')}", @resource)
+      instance_variable_set(:"@#{model_type.to_s.gsub("/", "__")}", @resource)
     end
 
     # Set the plural instance variable named after the model. Modules are delimited with "_".
     # Example: a MockApplePie resource collection is set to ivar @mock_apple_pies.
     def set_collection_instance
-      instance_variable_set(:"@#{model_type.to_s.gsub('/', '__').pluralize}", @resources)
+      instance_variable_set(:"@#{model_type.to_s.gsub("/", "__").pluralize}", @resources)
+    end
+
+    private
+
+    def apply_sorting(resources)
+      return resources unless default_sorting_attribute
+      resources.order(default_sorting_attribute => default_sorting_direction)
     end
   end
 end

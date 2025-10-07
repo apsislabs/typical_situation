@@ -1,18 +1,25 @@
 # frozen_string_literal: true
 
-appraise 'rails-4.2' do
-  gem 'rails', '~> 4.2'
-  gem 'rails-forward_compatible_controller_tests', require: false
+appraise "rails_7.0" do
+  gem "rails", "~> 7.0"
+  gem "rspec", "~> 3.12"
+  gem "rspec-rails", "~> 6.0"
+  gem "rails-controller-testing"
+  gem "sqlite3", "~> 1.4"
 end
 
-appraise 'rails-5.2' do
-  gem 'rails', '~> 5.2'
-  gem 'rails-controller-testing'
+appraise "rails_7.1" do
+  gem "rails", "~> 7.1"
+  gem "rspec", "~> 3.12"
+  gem "rspec-rails", "~> 6.1"
+  gem "rails-controller-testing"
+  gem "sqlite3", "~> 1.4"
 end
 
-appraise 'rails-6.0' do
-  gem 'rails', '~> 6.0'
-  gem 'sqlite3', '~> 1.4'
-  gem 'rails-controller-testing'
-  gem 'rspec-rails', '4.0.0.beta3'
+appraise "rails_8.0" do
+  gem "rails", "~> 8.0"
+  gem "rspec", "~> 3.13"
+  gem "rspec-rails", "~> 8.0"
+  gem "rails-controller-testing"
+  gem "sqlite3", "~> 2.1"
 end
