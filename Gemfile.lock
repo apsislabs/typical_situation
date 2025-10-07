@@ -85,7 +85,7 @@ GEM
     ast (2.4.3)
     base64 (0.3.0)
     benchmark (0.4.1)
-    bigdecimal (3.2.3)
+    bigdecimal (3.3.0)
     builder (3.3.0)
     byebug (12.0.0)
     combustion (1.5.0)
@@ -121,7 +121,7 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.15.0)
+    json (2.15.1)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     logger (1.7.0)
@@ -161,7 +161,7 @@ GEM
       date
       stringio
     racc (1.8.1)
-    rack (3.2.1)
+    rack (3.2.2)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -283,7 +283,7 @@ GEM
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
     unicode-emoji (4.1.0)
-    uri (1.0.3)
+    uri (1.0.4)
     useragent (0.16.11)
     websocket-driver (0.8.0)
       base64
@@ -309,4 +309,4 @@ DEPENDENCIES
   typical_situation!
 
 BUNDLED WITH
-   2.7.2
+   2.4.22
