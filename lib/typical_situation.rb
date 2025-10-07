@@ -1,12 +1,15 @@
 # frozen_string_literal: true
 
-require "typical_situation/identity"
-require "typical_situation/permissions"
-require "typical_situation/actions"
-require "typical_situation/operations"
-require "typical_situation/responses"
+require 'typical_situation/identity'
+require 'typical_situation/permissions'
+require 'typical_situation/actions'
+require 'typical_situation/operations'
+require 'typical_situation/responses'
 
 module TypicalSituation
+  class Error < StandardError; end
+  class ActionForbidden < Error; end
+
   include Identity
   include Permissions
   include Operations
@@ -58,6 +61,7 @@ module TypicalSituation
   def self.add_rescues(action_controller)
     action_controller.class_eval do
       rescue_from ActiveRecord::RecordNotFound, with: :respond_as_not_found
+      rescue_from TypicalSituation::ActionForbidden, with: :respond_as_forbidden
     end
   end
 end
