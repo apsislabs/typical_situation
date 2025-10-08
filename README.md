@@ -1,6 +1,6 @@
 # Typical Situation [![Spec CI](https://github.com/apsislabs/typical_situation/workflows/Spec%20CI/badge.svg)](https://github.com/apsislabs/typical_situation/actions)
 
-The missing Ruby on Rails ActionController REST API mixin.
+The missing Ruby on Rails ActionController REST API mixin. Originally forked from https://github.com/mars/typical_situation
 
 A Ruby mixin (module) providing the seven standard resource actions & responses for an ActiveRecord :model_type & :collection.
 
