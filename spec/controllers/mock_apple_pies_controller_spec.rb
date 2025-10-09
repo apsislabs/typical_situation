@@ -103,9 +103,20 @@ RSpec.describe MockApplePiesController, type: :controller do
         expect(response).to redirect_to(action: :show, id: pie.id)
       end
 
+      it "sets success flash message" do
+        post :create, params: new_attrs
+        expect(flash[:notice]).to eq("Mock apple pie was successfully created")
+      end
+
       it "renders 422 for invalid args" do
         post :create, params: bad_attrs
         expect(response).to have_http_status :unprocessable_entity
+      end
+
+      it "does not set flash message for invalid create" do
+        post :create, params: bad_attrs
+        expect(flash[:notice]).to be_nil
+        expect(flash[:error]).to be_nil
       end
     end
 
@@ -155,6 +166,11 @@ RSpec.describe MockApplePiesController, type: :controller do
         expect(response).to redirect_to(action: :show, id: pie.to_param)
       end
 
+      it "sets success flash message" do
+        put :update, params: update_attrs.merge(id: pie.to_param)
+        expect(flash[:notice]).to eq("Mock apple pie was successfully updated")
+      end
+
       it "renders not_found" do
         expect { put :update, params: update_attrs.merge(id: 555) }.to raise_error(ActionController::RoutingError)
       end
@@ -196,6 +212,11 @@ RSpec.describe MockApplePiesController, type: :controller do
         expect(response).to redirect_to(action: :index)
       end
 
+      it "sets success flash message" do
+        delete :destroy, params: {id: pie.to_param}
+        expect(flash[:notice]).to eq("Mock apple pie was successfully deleted")
+      end
+
       it "renders not_found" do
         expect { delete :destroy, params: {id: 555} }.to raise_error(ActionController::RoutingError)
       end
@@ -205,6 +226,13 @@ RSpec.describe MockApplePiesController, type: :controller do
 
         delete :destroy, params: {id: pie.to_param}
         expect(response).to have_http_status :unprocessable_entity
+      end
+
+      it "sets error flash message for failed deletion" do
+        pie.update_attribute(:ingredients, "real apples")
+
+        delete :destroy, params: {id: pie.to_param}
+        expect(flash[:error]).to include("can't be deleted because it contains real apple")
       end
     end
 

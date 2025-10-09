@@ -11,6 +11,9 @@ require "rspec/rails"
 require "typical_situation"
 require "factory_bot_rails"
 
+# Load typical_situation I18n translations
+I18n.load_path += Dir[File.expand_path("../config/locales/**/*.yml", __dir__)]
+
 Dir[File.dirname(__FILE__) + "/factories/*.rb"].each { |f| require f }
 
 RSpec.configure do |config|

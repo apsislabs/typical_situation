@@ -2,6 +2,7 @@
 
 require "typical_situation/identity"
 require "typical_situation/permissions"
+require "typical_situation/flash_messages"
 require "typical_situation/actions"
 require "typical_situation/operations"
 require "typical_situation/responses"
@@ -12,6 +13,7 @@ module TypicalSituation
 
   include Identity
   include Permissions
+  include FlashMessages
   include Operations
   include Responses
 

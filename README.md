@@ -199,6 +199,58 @@ end
 
 By default, `TypicalSituation` permits all parameters (`permit!`) when these methods return `nil` or an empty array. Override them to restrict parameters for security.
 
+#### Flash Messages
+
+Add to `config/locales/en.yml`:
+
+```yaml
+en:
+  typical_situation:
+    flash:
+      create:
+        success: "%{resource} was successfully created"
+      update:
+        success: "%{resource} was successfully updated"
+      destroy:
+        success: "%{resource} was successfully deleted"
+```
+
+**Custom messages per resource:**
+
+```yaml
+en:
+  posts:
+    flash:
+      create:
+        success: "Your blog post is now live"
+```
+
+Override translation helper:
+
+```ruby
+def translate_with_resource(key)
+  model_key = "#{resource_name}.flash.#{key}"
+  if I18n.exists?(model_key)
+    I18n.t(model_key, resource: resource_name.humanize)
+  else
+    I18n.t("typical_situation.flash.#{key}", resource: resource_name.humanize)
+  end
+end
+```
+
+**Custom flash logic:**
+
+```ruby
+def set_success_flash(action)
+  case action
+  when :create
+    flash[:notice] = "Your #{resource_name.humanize.downcase} is live"
+  when :destroy
+    flash[:warning] = translate_with_resource("#{action}.success")
+  end
+end
+```
+
 #### Authorization
 
 Control access to resources by overriding the `authorized?` method:

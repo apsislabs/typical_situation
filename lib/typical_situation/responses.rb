@@ -45,6 +45,7 @@ module TypicalSituation
           yield(format) if block_given?
 
           format.html do
+            set_success_flash(:update)
             set_single_instance
             changed_so_redirect || render
           end
@@ -63,6 +64,7 @@ module TypicalSituation
           yield(format) if block_given?
 
           format.html do
+            set_success_flash(:create)
             set_single_instance
             changed_so_redirect || render
           end
@@ -93,6 +95,7 @@ module TypicalSituation
 
     def respond_as_gone
       if has_errors?
+        set_error_flash
         respond_as_error
       else
         respond_to do |format|
@@ -149,6 +152,8 @@ module TypicalSituation
 
     # HTML response when @resource deleted.
     def gone_so_redirect
+      set_error_flash if has_errors?
+      set_success_flash(:destroy) unless has_errors?
       redirect_to after_resource_destroyed_path(@resource)
       true
     end

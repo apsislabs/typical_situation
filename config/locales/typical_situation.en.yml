@@ -1,0 +1,9 @@
+en:
+  typical_situation:
+    flash:
+      create:
+        success: "%{resource} was successfully created"
+      update:
+        success: "%{resource} was successfully updated"
+      destroy:
+        success: "%{resource} was successfully deleted"
