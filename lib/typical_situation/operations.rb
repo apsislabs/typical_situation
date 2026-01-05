@@ -29,11 +29,11 @@ module TypicalSituation
     end
 
     def get_resource
-      if (@resource = find_resource(params[:id]))
+      if (@resource = find_resource(id_param))
         set_single_instance
         @resource
       else
-        raise ActiveRecord::RecordNotFound, "Could not find #{model_class}( id:#{params[:id].inspect} )"
+        raise ActiveRecord::RecordNotFound, "Could not find #{model_class}( id:#{id_param.inspect} )"
       end
     end
 
@@ -103,6 +103,12 @@ module TypicalSituation
     # Example: a MockApplePie resource collection is set to ivar @mock_apple_pies.
     def set_collection_instance
       instance_variable_set(:"@#{model_type.to_s.gsub("/", "__").pluralize}", @resources)
+    end
+
+    protected
+
+    def id_param
+      params[:id]
     end
 
     private

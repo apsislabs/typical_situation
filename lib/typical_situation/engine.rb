@@ -1,4 +1,4 @@
-require 'rails/engine'
+require "rails/engine"
 
 module TypicalSituation
   class Engine < Rails::Engine
