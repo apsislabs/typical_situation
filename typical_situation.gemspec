@@ -17,13 +17,14 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
 
-  s.required_ruby_version = ">= 3.0.0"
+  s.required_ruby_version = ">= 3.1.0"
 
-  s.add_runtime_dependency "rails", ">= 7.0.0"
+  s.add_runtime_dependency "rails", ">= 7.2.0"
 
   s.add_development_dependency "appraisal"
   s.add_development_dependency "bundler", ">= 2.2.0"
-  s.add_development_dependency "byebug"
+  s.add_development_dependency "bump"
+  s.add_development_dependency "debug"
   s.add_development_dependency "combustion"
   s.add_development_dependency "coveralls"
   s.add_development_dependency "factory_bot_rails"

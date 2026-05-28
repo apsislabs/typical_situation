@@ -2,11 +2,9 @@
 
 require "spec_helper"
 
-PIES_COUNT = 5
-
 RSpec.describe MockApplePiesController, type: :controller do
   before(:each) do
-    @grandma = create(:grandma, pies_count: PIES_COUNT)
+    @grandma = create(:grandma, pies_count: 5)
     controller.current_grandma = @grandma
   end
 
@@ -15,8 +13,8 @@ RSpec.describe MockApplePiesController, type: :controller do
   describe "authorization" do
     describe "default behavior" do
       it "authorized? returns true by default" do
-        expect(controller.authorized?(:show, pie)).to be true
-        expect(controller.authorized?(:destroy, pie)).to be true
+        expect(controller.send(:authorized?, :show, pie)).to be true
+        expect(controller.send(:authorized?, :destroy, pie)).to be true
       end
     end
 
@@ -44,22 +42,22 @@ RSpec.describe MockApplePiesController, type: :controller do
 
       it "allows destroy when authorized" do
         pie = create(:mock_apple_pie, grandma: @grandma, ingredients: "allowed")
-        expect(custom_controller.authorized?(:destroy, pie)).to be true
+        expect(custom_controller.send(:authorized?, :destroy, pie)).to be true
       end
 
       it "blocks destroy when unauthorized" do
         pie = create(:mock_apple_pie, grandma: @grandma, ingredients: "forbidden_ingredient")
-        expect(custom_controller.authorized?(:destroy, pie)).to be false
+        expect(custom_controller.send(:authorized?, :destroy, pie)).to be false
       end
 
       it "allows show when authorized" do
         pie = create(:mock_apple_pie, grandma: @grandma, ingredients: "allowed")
-        expect(custom_controller.authorized?(:show, pie)).to be true
+        expect(custom_controller.send(:authorized?, :show, pie)).to be true
       end
 
       it "blocks show when unauthorized" do
         pie = create(:mock_apple_pie, grandma: @grandma, ingredients: "secret_ingredient")
-        expect(custom_controller.authorized?(:show, pie)).to be false
+        expect(custom_controller.send(:authorized?, :show, pie)).to be false
       end
     end
 
@@ -83,7 +81,7 @@ RSpec.describe MockApplePiesController, type: :controller do
 
         # Test that respond_as_forbidden is called (we can't easily test the full response in this setup)
         expect(custom_controller).to receive(:redirect_to).with("/custom_forbidden")
-        custom_controller.respond_as_forbidden
+        custom_controller.send(:respond_as_forbidden)
       end
     end
   end

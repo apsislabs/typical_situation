@@ -3,6 +3,8 @@
 module TypicalSituation
   # Rails MIME responses.
   module Responses
+    protected
+
     # Return the collection as HTML or JSON
     #
     def respond_with_resources

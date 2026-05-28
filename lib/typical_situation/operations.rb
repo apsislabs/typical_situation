@@ -4,6 +4,8 @@ module TypicalSituation
   # Model operations.
   # Assume that we're working w/ an ActiveRecord association collection.
   module Operations
+    protected
+
     def scoped_resource
       collection
     end
@@ -41,10 +43,27 @@ module TypicalSituation
       !@resource.errors.empty?
     end
 
+    # Collection pipeline lifecycle:
+    #   collection         - base relation (user-defined, required)
+    #   scoped_resource    - wraps/scopes the collection (visibility, tenancy, PHI)
+    #   prepare_resources  - standardized additional transforms (search, filter)
+    #   apply_sorting      - applies ORDER BY
+    #   paginate_resources - applies pagination
+    #
+    # Override +prepare_resources+ in host controllers to add search/filter
+    # behavior without touching sorting or pagination hooks.
     def get_resources
-      @resources = paginate_resources(apply_sorting(scoped_resource))
+      resources = scoped_resource
+      resources = prepare_resources(resources)
+      resources = apply_sorting(resources)
+      resources = paginate_resources(resources)
+      @resources = resources
       set_collection_instance
       @resources
+    end
+
+    def prepare_resources(resources)
+      resources
     end
 
     def new_resource
@@ -93,20 +112,6 @@ module TypicalSituation
       resource
     end
 
-    # Set the singular instance variable named after the model. Modules are delimited with "_".
-    # Example: a MockApplePie resource is set to ivar @mock_apple_pie.
-    def set_single_instance
-      instance_variable_set(:"@#{model_type.to_s.gsub("/", "__")}", @resource)
-    end
-
-    # Set the plural instance variable named after the model. Modules are delimited with "_".
-    # Example: a MockApplePie resource collection is set to ivar @mock_apple_pies.
-    def set_collection_instance
-      instance_variable_set(:"@#{model_type.to_s.gsub("/", "__").pluralize}", @resources)
-    end
-
-    protected
-
     def id_param
       params[:id]
     end
@@ -116,6 +121,16 @@ module TypicalSituation
     def apply_sorting(resources)
       return resources unless default_sorting_attribute
       resources.order(default_sorting_attribute => default_sorting_direction)
+    end
+
+    # Sets the singular ivar named after the model (modules delimited with "__").
+    def set_single_instance
+      instance_variable_set(:"@#{model_type.to_s.gsub("/", "__")}", @resource)
+    end
+
+    # Sets the plural ivar named after the model (modules delimited with "__").
+    def set_collection_instance
+      instance_variable_set(:"@#{model_type.to_s.gsub("/", "__").pluralize}", @resources)
     end
   end
 end

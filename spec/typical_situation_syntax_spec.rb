@@ -30,15 +30,15 @@ RSpec.describe "TypicalSituation syntax sugar" do
     end
 
     it "defines model_type method" do
-      expect(controller.model_type).to eq(:test_model)
+      expect(controller.send(:model_type)).to eq(:test_model)
     end
 
     it "works with all typical situation functionality" do
-      expect(controller.model_class).to eq(TestModel)
+      expect(controller.send(:model_class)).to eq(TestModel)
     end
 
     it "works with plural_model_type" do
-      expect(controller.plural_model_type).to eq(:test_models)
+      expect(controller.send(:plural_model_type)).to eq(:test_models)
     end
 
     it "works with model_params" do
@@ -49,8 +49,8 @@ RSpec.describe "TypicalSituation syntax sugar" do
         )
       end
 
-      expect(controller.model_params).to be_a(ActionController::Parameters)
-      expect(controller.model_params[:name]).to eq("Test")
+      expect(controller.send(:model_params)).to be_a(ActionController::Parameters)
+      expect(controller.send(:model_params)[:name]).to eq("Test")
     end
   end
 
@@ -89,7 +89,7 @@ RSpec.describe "TypicalSituation syntax sugar" do
     end
 
     it "still works with model_type functionality" do
-      expect(limited_controller.model_type).to eq(:test_model)
+      expect(limited_controller.send(:model_type)).to eq(:test_model)
     end
   end
 
@@ -120,7 +120,7 @@ RSpec.describe "TypicalSituation syntax sugar" do
     end
 
     it "defines model_type method" do
-      expect(rest_controller.model_type).to eq(:test_model)
+      expect(rest_controller.send(:model_type)).to eq(:test_model)
     end
 
     it "includes all REST actions" do
@@ -153,7 +153,7 @@ RSpec.describe "TypicalSituation syntax sugar" do
       equivalent_controller = equivalent_class.new
       equivalent_controller.current_grandma = grandma
 
-      expect(rest_controller.model_type).to eq(equivalent_controller.model_type)
+      expect(rest_controller.send(:model_type)).to eq(equivalent_controller.send(:model_type))
 
       %i[index show new create edit update destroy].each do |action|
         expect(rest_controller.respond_to?(action)).to eq(equivalent_controller.respond_to?(action))
@@ -188,7 +188,7 @@ RSpec.describe "TypicalSituation syntax sugar" do
     end
 
     it "defines model_type method" do
-      expect(crud_controller.model_type).to eq(:test_model)
+      expect(crud_controller.send(:model_type)).to eq(:test_model)
     end
 
     it "includes only CRUD actions" do
@@ -224,7 +224,7 @@ RSpec.describe "TypicalSituation syntax sugar" do
       equivalent_controller = equivalent_class.new
       equivalent_controller.current_grandma = grandma
 
-      expect(crud_controller.model_type).to eq(equivalent_controller.model_type)
+      expect(crud_controller.send(:model_type)).to eq(equivalent_controller.send(:model_type))
 
       %i[index show new create edit update destroy].each do |action|
         expect(crud_controller.respond_to?(action)).to eq(equivalent_controller.respond_to?(action))
@@ -291,10 +291,10 @@ RSpec.describe "TypicalSituation syntax sugar" do
     end
 
     it "both helpers work with model_type functionality" do
-      expect(rest_controller.model_type).to eq(:test_model)
-      expect(crud_controller.model_type).to eq(:test_model)
-      expect(rest_controller.model_class).to eq(TestModel)
-      expect(crud_controller.model_class).to eq(TestModel)
+      expect(rest_controller.send(:model_type)).to eq(:test_model)
+      expect(crud_controller.send(:model_type)).to eq(:test_model)
+      expect(rest_controller.send(:model_class)).to eq(TestModel)
+      expect(crud_controller.send(:model_class)).to eq(TestModel)
     end
   end
 
@@ -341,8 +341,8 @@ RSpec.describe "TypicalSituation syntax sugar" do
       old_controller = old_syntax_controller_class.new
       new_controller = new_syntax_controller_class.new
 
-      expect(old_controller.model_type).to eq(new_controller.model_type)
-      expect(old_controller.plural_model_type).to eq(new_controller.plural_model_type)
+      expect(old_controller.send(:model_type)).to eq(new_controller.send(:model_type))
+      expect(old_controller.send(:plural_model_type)).to eq(new_controller.send(:plural_model_type))
     end
   end
 

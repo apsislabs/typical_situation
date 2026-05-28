@@ -8,15 +8,17 @@ A Ruby mixin (module) providing the seven standard resource actions & responses 
 
 Tested in:
 
-- Rails 7.0
-- Rails 7.1  
+- Rails 7.2
 - Rails 8.0
+- Rails 8.1
 
 Against Ruby versions:
 
+- 3.1
 - 3.2
 - 3.3
 - 3.4
+- 4.0
 
 Add to your **Gemfile**:
 
@@ -109,7 +111,17 @@ The library is split into modules:
 
 #### Common Customization Hooks
 
-**Scoped Collections** - Filter the collection based on user permissions or other criteria:
+Most customization hooks are intended to be overridden as `private` or `protected` controller methods so they do not become public controller actions.
+
+For index actions, resources move through this pipeline:
+
+1. `collection` - base relation from the host controller
+2. `scoped_resource` - visibility/tenant/security scoping
+3. `prepare_resources` - search or filter transforms
+4. `apply_sorting` - default sorting from `default_sorting_attribute`
+5. `paginate_resources` - pagination adapter hook
+
+**Scoped Collections** - Restrict the base collection based on user permissions, tenancy, or other security boundaries:
 
 ```ruby
 def scoped_resource
@@ -118,6 +130,16 @@ def scoped_resource
   else
     collection.where(published: true)
   end
+end
+```
+
+**Search and Filtering** - Apply request-driven filters after scoping and before sorting/pagination:
+
+```ruby
+def prepare_resources(resources)
+  resources = resources.where(status: params[:status]) if params[:status].present?
+  resources = resources.where("title ILIKE ?", "%#{params[:q]}%") if params[:q].present?
+  resources
 end
 ```
 
@@ -438,6 +460,21 @@ Start an interactive console to experiment with the gem:
 ```bash
 bundle exec irb -r typical_situation
 ```
+
+## Releases
+
+Releases are driven by git tags. The version lives in `lib/typical_situation/version.rb`, and the gemspec reads `TypicalSituation::VERSION`.
+
+Release locally from the branch you want to publish:
+
+```bash
+bundle install
+bin/release patch # or: minor, major
+```
+
+`bin/release` uses `bump`, commits the version file, creates a `vX.Y.Z` tag, pushes the branch, and pushes the tag.
+
+GitHub Actions publishes only when a `v*` tag is pushed. The publish workflow builds the gem and pushes it to RubyGems with `RUBYGEMS_API_KEY`.
 
 ## Contributing
 
