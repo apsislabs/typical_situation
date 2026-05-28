@@ -461,6 +461,21 @@ Start an interactive console to experiment with the gem:
 bundle exec irb -r typical_situation
 ```
 
+## Releases
+
+Releases are driven by git tags. The version lives in `lib/typical_situation/version.rb`, and the gemspec reads `TypicalSituation::VERSION`.
+
+Release locally from the branch you want to publish:
+
+```bash
+bundle install
+bin/release patch # or: minor, major
+```
+
+`bin/release` uses `bump`, commits the version file, creates a `vX.Y.Z` tag, pushes the branch, and pushes the tag.
+
+GitHub Actions publishes only when a `v*` tag is pushed. The publish workflow builds the gem and pushes it to RubyGems with `RUBYGEMS_API_KEY`.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/apsislabs/typical_situation.

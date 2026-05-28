@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency "appraisal"
   s.add_development_dependency "bundler", ">= 2.2.0"
+  s.add_development_dependency "bump"
   s.add_development_dependency "debug"
   s.add_development_dependency "combustion"
   s.add_development_dependency "coveralls"
