@@ -3,6 +3,8 @@
 module TypicalSituation
   # These Identity methods must be defined for each implementation.
   module Identity
+    protected
+
     # Symbolized, underscored version of the model (class) to use.
     def model_type
       raise(NotImplementedError, "#model_type must be defined in the TypicalSituation implementation.")

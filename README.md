@@ -8,15 +8,17 @@ A Ruby mixin (module) providing the seven standard resource actions & responses 
 
 Tested in:
 
-- Rails 7.0
-- Rails 7.1  
+- Rails 7.2
 - Rails 8.0
+- Rails 8.1
 
 Against Ruby versions:
 
+- 3.1
 - 3.2
 - 3.3
 - 3.4
+- 4.0
 
 Add to your **Gemfile**:
 

@@ -260,40 +260,74 @@ RSpec.describe MockApplePiesController, type: :controller do
   describe "customization hooks" do
     describe "default behavior" do
       it "scoped_resource returns collection" do
-        expect(controller.scoped_resource).to eq(@grandma.mock_apple_pies)
+        expect(controller.send(:scoped_resource)).to eq(@grandma.mock_apple_pies)
       end
 
       it "find_resource calls find_in_collection" do
-        result = controller.find_resource(pie.id)
+        result = controller.send(:find_resource, pie.id)
         expect(result).to eq(pie)
       end
 
       it "default_sorting_attribute returns nil" do
-        expect(controller.default_sorting_attribute).to be_nil
+        expect(controller.send(:default_sorting_attribute)).to be_nil
       end
 
       it "default_sorting_direction returns :asc" do
-        expect(controller.default_sorting_direction).to eq(:asc)
+        expect(controller.send(:default_sorting_direction)).to eq(:asc)
       end
 
       it "paginate_resources returns unchanged resources" do
         resources = @grandma.mock_apple_pies
-        expect(controller.paginate_resources(resources)).to eq(resources)
+        expect(controller.send(:paginate_resources, resources)).to eq(resources)
+      end
+
+      it "prepare_resources returns unchanged resources" do
+        resources = @grandma.mock_apple_pies
+        expect(controller.send(:prepare_resources, resources)).to eq(resources)
       end
 
       it "after_resource_created_path returns show path" do
-        path = controller.after_resource_created_path(pie)
+        path = controller.send(:after_resource_created_path, pie)
         expect(path).to eq({action: :show, id: pie.id})
       end
 
       it "after_resource_updated_path returns show path" do
-        path = controller.after_resource_updated_path(pie)
+        path = controller.send(:after_resource_updated_path, pie)
         expect(path).to eq({action: :show, id: pie.id})
       end
 
       it "after_resource_destroyed_path returns index path" do
-        path = controller.after_resource_destroyed_path(pie)
+        path = controller.send(:after_resource_destroyed_path, pie)
         expect(path).to eq({action: :index})
+      end
+    end
+
+    describe "get_resources pipeline" do
+      it "calls prepare_resources between scoped_resource and apply_sorting" do
+        sentinel = double("filtered_relation")
+        allow(sentinel).to receive(:order).and_return(sentinel)
+        allow(controller).to receive(:paginate_resources).and_return(sentinel)
+
+        expect(controller).to receive(:prepare_resources)
+          .with(controller.send(:scoped_resource))
+          .and_return(sentinel)
+
+        controller.send(:get_resources)
+      end
+
+      it "passes prepare_resources output into apply_sorting" do
+        filtered = @grandma.mock_apple_pies.where(id: pie.id)
+        allow(controller).to receive(:prepare_resources).and_return(filtered)
+
+        controller.send(:get_resources)
+        expect(assigns(:mock_apple_pies)).to match_array([pie])
+      end
+
+      it "override of prepare_resources is respected" do
+        allow(controller).to receive(:prepare_resources) { |r| r.where(id: pie.id) }
+
+        get :index
+        expect(assigns(:mock_apple_pies)).to eq([pie])
       end
     end
 
@@ -303,7 +337,7 @@ RSpec.describe MockApplePiesController, type: :controller do
           ActionController::Parameters.new(page: "2", per_page: "10", other: "ignored")
         )
 
-        permitted = controller.pagination_params
+        permitted = controller.send(:pagination_params)
         expect(permitted[:page]).to eq("2")
         expect(permitted[:per_page]).to eq("10")
         expect(permitted[:other]).to be_nil
@@ -319,20 +353,20 @@ RSpec.describe MockApplePiesController, type: :controller do
 
       describe "#permitted_create_params" do
         it "returns nil by default" do
-          expect(controller.permitted_create_params).to be_nil
+          expect(controller.send(:permitted_create_params)).to be_nil
         end
       end
 
       describe "#permitted_update_params" do
         it "returns nil by default" do
-          expect(controller.permitted_update_params).to be_nil
+          expect(controller.send(:permitted_update_params)).to be_nil
         end
       end
 
       describe "#create_params" do
         it "permits all params when permitted_create_params is nil" do
           allow(controller).to receive(:permitted_create_params).and_return(nil)
-          result = controller.create_params
+          result = controller.send(:create_params)
           expect(result[:ingredients]).to eq("love")
           expect(result[:grandma_id]).to eq(1)
           expect(result[:secret_field]).to eq("hidden")
@@ -340,7 +374,7 @@ RSpec.describe MockApplePiesController, type: :controller do
 
         it "permits all params when permitted_create_params is empty" do
           allow(controller).to receive(:permitted_create_params).and_return([])
-          result = controller.create_params
+          result = controller.send(:create_params)
           expect(result[:ingredients]).to eq("love")
           expect(result[:grandma_id]).to eq(1)
           expect(result[:secret_field]).to eq("hidden")
@@ -348,7 +382,7 @@ RSpec.describe MockApplePiesController, type: :controller do
 
         it "filters params when permitted_create_params is specified" do
           allow(controller).to receive(:permitted_create_params).and_return([:ingredients])
-          result = controller.create_params
+          result = controller.send(:create_params)
           expect(result[:ingredients]).to eq("love")
           expect(result[:grandma_id]).to be_nil
           expect(result[:secret_field]).to be_nil
@@ -358,7 +392,7 @@ RSpec.describe MockApplePiesController, type: :controller do
       describe "#update_params" do
         it "permits all params when permitted_update_params is nil" do
           allow(controller).to receive(:permitted_update_params).and_return(nil)
-          result = controller.update_params
+          result = controller.send(:update_params)
           expect(result[:ingredients]).to eq("love")
           expect(result[:grandma_id]).to eq(1)
           expect(result[:secret_field]).to eq("hidden")
@@ -366,7 +400,7 @@ RSpec.describe MockApplePiesController, type: :controller do
 
         it "permits all params when permitted_update_params is empty" do
           allow(controller).to receive(:permitted_update_params).and_return([])
-          result = controller.update_params
+          result = controller.send(:update_params)
           expect(result[:ingredients]).to eq("love")
           expect(result[:grandma_id]).to eq(1)
           expect(result[:secret_field]).to eq("hidden")
@@ -374,7 +408,7 @@ RSpec.describe MockApplePiesController, type: :controller do
 
         it "filters params when permitted_update_params is specified" do
           allow(controller).to receive(:permitted_update_params).and_return([:ingredients])
-          result = controller.update_params
+          result = controller.send(:update_params)
           expect(result[:ingredients]).to eq("love")
           expect(result[:grandma_id]).to be_nil
           expect(result[:secret_field]).to be_nil

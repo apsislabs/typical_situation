@@ -40,6 +40,7 @@ module TypicalSituation
       define_method :model_type do
         model_type_symbol
       end
+      protected :model_type
 
       if only
         only.each do |action|
