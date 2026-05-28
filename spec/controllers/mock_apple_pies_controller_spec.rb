@@ -303,16 +303,38 @@ RSpec.describe MockApplePiesController, type: :controller do
     end
 
     describe "get_resources pipeline" do
-      it "calls prepare_resources between scoped_resource and apply_sorting" do
-        sentinel = double("filtered_relation")
-        allow(sentinel).to receive(:order).and_return(sentinel)
-        allow(controller).to receive(:paginate_resources).and_return(sentinel)
+      it "runs scoped_resource, prepare_resources, apply_sorting, and paginate_resources in order" do
+        order = []
+        scoped = @grandma.mock_apple_pies
+        prepared = scoped.where(id: pie.id)
+        sorted = prepared.reorder(ingredients: :desc)
+        paginated = sorted.limit(1)
 
-        expect(controller).to receive(:prepare_resources)
-          .with(controller.send(:scoped_resource))
-          .and_return(sentinel)
+        allow(controller).to receive(:scoped_resource) do
+          order << :scoped_resource
+          scoped
+        end
+        allow(controller).to receive(:prepare_resources) do |resources|
+          order << :prepare_resources
+          expect(resources).to eq(scoped)
+          prepared
+        end
+        allow(controller).to receive(:apply_sorting) do |resources|
+          order << :apply_sorting
+          expect(resources).to eq(prepared)
+          sorted
+        end
+        allow(controller).to receive(:paginate_resources) do |resources|
+          order << :paginate_resources
+          expect(resources).to eq(sorted)
+          paginated
+        end
 
-        controller.send(:get_resources)
+        result = controller.send(:get_resources)
+
+        expect(result).to eq(paginated)
+        expect(assigns(:mock_apple_pies)).to eq(paginated)
+        expect(order).to eq(%i[scoped_resource prepare_resources apply_sorting paginate_resources])
       end
 
       it "passes prepare_resources output into apply_sorting" do

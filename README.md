@@ -111,7 +111,17 @@ The library is split into modules:
 
 #### Common Customization Hooks
 
-**Scoped Collections** - Filter the collection based on user permissions or other criteria:
+Most customization hooks are intended to be overridden as `private` or `protected` controller methods so they do not become public controller actions.
+
+For index actions, resources move through this pipeline:
+
+1. `collection` - base relation from the host controller
+2. `scoped_resource` - visibility/tenant/security scoping
+3. `prepare_resources` - search or filter transforms
+4. `apply_sorting` - default sorting from `default_sorting_attribute`
+5. `paginate_resources` - pagination adapter hook
+
+**Scoped Collections** - Restrict the base collection based on user permissions, tenancy, or other security boundaries:
 
 ```ruby
 def scoped_resource
@@ -120,6 +130,16 @@ def scoped_resource
   else
     collection.where(published: true)
   end
+end
+```
+
+**Search and Filtering** - Apply request-driven filters after scoping and before sorting/pagination:
+
+```ruby
+def prepare_resources(resources)
+  resources = resources.where(status: params[:status]) if params[:status].present?
+  resources = resources.where("title ILIKE ?", "%#{params[:q]}%") if params[:q].present?
+  resources
 end
 ```
 
