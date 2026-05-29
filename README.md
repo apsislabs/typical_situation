@@ -461,20 +461,18 @@ Start an interactive console to experiment with the gem:
 bundle exec irb -r typical_situation
 ```
 
-## Releases
+### Releasing
 
-Releases are driven by git tags. The version lives in `lib/typical_situation/version.rb`, and the gemspec reads `TypicalSituation::VERSION`.
+Create a release from `main`:
 
-Release locally from the branch you want to publish:
-
-```bash
-bundle install
-bin/release patch # or: minor, major
+```sh
+bin/release {major|minor|patch|pre}
+git push --follow-tags
 ```
 
-`bin/release` uses `bump`, commits the version file, creates a `vX.Y.Z` tag, pushes the branch, and pushes the tag.
+The release script validates the repository, bumps the version, creates a git tag.
 
-GitHub Actions publishes only when a `v*` tag is pushed. The publish workflow builds the gem and pushes it to RubyGems with `RUBYGEMS_API_KEY`.
+Publishing to RubyGems and creating a GitHub Release are handled automatically by GitHub Actions.
 
 ## Contributing
 
