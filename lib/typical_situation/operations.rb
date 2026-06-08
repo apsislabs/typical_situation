@@ -46,20 +46,26 @@ module TypicalSituation
     # Collection pipeline lifecycle:
     #   collection         - base relation (user-defined, required)
     #   scoped_resource    - wraps/scopes the collection (visibility, tenancy, PHI)
-    #   prepare_resources  - standardized additional transforms (search, filter)
+    #   apply_filtering    - applies search/filter params
     #   apply_sorting      - applies ORDER BY
     #   paginate_resources - applies pagination
+    #   prepare_resources  - post-processes the loaded records (e.g. set a computed attribute)
     #
-    # Override +prepare_resources+ in host controllers to add search/filter
-    # behavior without touching sorting or pagination hooks.
+    # Override +apply_filtering+ to add search/filter behavior.
+    # Override +prepare_resources+ to mutate or decorate the final record set.
     def get_resources
       resources = scoped_resource
-      resources = prepare_resources(resources)
+      resources = apply_filtering(resources)
       resources = apply_sorting(resources)
       resources = paginate_resources(resources)
+      resources = prepare_resources(resources)
       @resources = resources
       set_collection_instance
       @resources
+    end
+
+    def apply_filtering(resources)
+      resources
     end
 
     def prepare_resources(resources)

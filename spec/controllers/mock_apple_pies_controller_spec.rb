@@ -281,6 +281,11 @@ RSpec.describe MockApplePiesController, type: :controller do
         expect(controller.send(:paginate_resources, resources)).to eq(resources)
       end
 
+      it "apply_filtering returns unchanged resources" do
+        resources = @grandma.mock_apple_pies
+        expect(controller.send(:apply_filtering, resources)).to eq(resources)
+      end
+
       it "prepare_resources returns unchanged resources" do
         resources = @grandma.mock_apple_pies
         expect(controller.send(:prepare_resources, resources)).to eq(resources)
@@ -303,25 +308,26 @@ RSpec.describe MockApplePiesController, type: :controller do
     end
 
     describe "get_resources pipeline" do
-      it "runs scoped_resource, prepare_resources, apply_sorting, and paginate_resources in order" do
+      it "runs scoped_resource, apply_filtering, apply_sorting, paginate_resources, prepare_resources in order" do
         order = []
         scoped = @grandma.mock_apple_pies
-        prepared = scoped.where(id: pie.id)
-        sorted = prepared.reorder(ingredients: :desc)
+        filtered = scoped.where(id: pie.id)
+        sorted = filtered.reorder(ingredients: :desc)
         paginated = sorted.limit(1)
+        prepared = paginated.to_a
 
         allow(controller).to receive(:scoped_resource) do
           order << :scoped_resource
           scoped
         end
-        allow(controller).to receive(:prepare_resources) do |resources|
-          order << :prepare_resources
+        allow(controller).to receive(:apply_filtering) do |resources|
+          order << :apply_filtering
           expect(resources).to eq(scoped)
-          prepared
+          filtered
         end
         allow(controller).to receive(:apply_sorting) do |resources|
           order << :apply_sorting
-          expect(resources).to eq(prepared)
+          expect(resources).to eq(filtered)
           sorted
         end
         allow(controller).to receive(:paginate_resources) do |resources|
@@ -329,27 +335,50 @@ RSpec.describe MockApplePiesController, type: :controller do
           expect(resources).to eq(sorted)
           paginated
         end
+        allow(controller).to receive(:prepare_resources) do |resources|
+          order << :prepare_resources
+          expect(resources).to eq(paginated)
+          prepared
+        end
 
         result = controller.send(:get_resources)
 
-        expect(result).to eq(paginated)
-        expect(assigns(:mock_apple_pies)).to eq(paginated)
-        expect(order).to eq(%i[scoped_resource prepare_resources apply_sorting paginate_resources])
+        expect(result).to eq(prepared)
+        expect(assigns(:mock_apple_pies)).to eq(prepared)
+        expect(order).to eq(%i[scoped_resource apply_filtering apply_sorting paginate_resources prepare_resources])
       end
 
-      it "passes prepare_resources output into apply_sorting" do
+      it "passes apply_filtering output into apply_sorting" do
         filtered = @grandma.mock_apple_pies.where(id: pie.id)
-        allow(controller).to receive(:prepare_resources).and_return(filtered)
+        allow(controller).to receive(:apply_filtering).and_return(filtered)
 
         controller.send(:get_resources)
         expect(assigns(:mock_apple_pies)).to match_array([pie])
       end
 
-      it "override of prepare_resources is respected" do
-        allow(controller).to receive(:prepare_resources) { |r| r.where(id: pie.id) }
+      it "override of apply_filtering is respected" do
+        allow(controller).to receive(:apply_filtering) { |r| r.where(id: pie.id) }
 
         get :index
         expect(assigns(:mock_apple_pies)).to eq([pie])
+      end
+
+      it "override of prepare_resources is respected" do
+        allow(controller).to receive(:prepare_resources) { |r| r.map { |p| p.tap { |x| x.ingredients = "decorated" } } }
+
+        get :index
+        expect(assigns(:mock_apple_pies).map(&:ingredients)).to all(eq("decorated"))
+      end
+
+      it "prepare_resources receives the paginated result set" do
+        paginated = @grandma.mock_apple_pies.limit(2)
+        allow(controller).to receive(:paginate_resources).and_return(paginated)
+
+        received = nil
+        allow(controller).to receive(:prepare_resources) { |r| received = r; r }
+
+        controller.send(:get_resources)
+        expect(received).to eq(paginated)
       end
     end
 

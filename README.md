@@ -117,9 +117,10 @@ For index actions, resources move through this pipeline:
 
 1. `collection` - base relation from the host controller
 2. `scoped_resource` - visibility/tenant/security scoping
-3. `prepare_resources` - search or filter transforms
+3. `apply_filtering` - request-driven search and filter transforms
 4. `apply_sorting` - default sorting from `default_sorting_attribute`
 5. `paginate_resources` - pagination adapter hook
+6. `prepare_resources` - post-process the loaded records
 
 **Scoped Collections** - Restrict the base collection based on user permissions, tenancy, or other security boundaries:
 
@@ -136,10 +137,18 @@ end
 **Search and Filtering** - Apply request-driven filters after scoping and before sorting/pagination:
 
 ```ruby
-def prepare_resources(resources)
+def apply_filtering(resources)
   resources = resources.where(status: params[:status]) if params[:status].present?
   resources = resources.where("title ILIKE ?", "%#{params[:q]}%") if params[:q].present?
   resources
+end
+```
+
+**Post-processing** - Mutate or decorate the final paginated record set (e.g. compute a derived attribute on every record):
+
+```ruby
+def prepare_resources(resources)
+  resources.each { |post| post.current_user_liked = liked_post_ids.include?(post.id) }
 end
 ```
 
