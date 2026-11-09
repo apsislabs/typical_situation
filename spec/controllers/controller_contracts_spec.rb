@@ -215,4 +215,37 @@ RSpec.describe MockApplePiesController, type: :controller do
       end.to raise_error(RuntimeError, "database unavailable")
     end
   end
+
+  describe "redirect hooks" do
+    before do
+      controller.define_singleton_method(:after_resource_created_path) do |_resource|
+        {action: :index}
+      end
+
+      controller.define_singleton_method(:after_resource_updated_path) do |resource|
+        {action: :edit, id: resource.id}
+      end
+    end
+
+    it "uses the create destination" do
+      dispatch_mutation(:create, :html)
+
+      expect(response).to redirect_to(action: :index)
+    end
+
+    it "uses the update destination" do
+      dispatch_mutation(:update, :html)
+
+      expect(response).to redirect_to(action: :edit, id: pie.id)
+    end
+
+    it "keeps JSON creation's status and Location header" do
+      dispatch_mutation(:create, :json)
+
+      expect(response).to have_http_status(:created)
+
+      id = response.parsed_body.dig("mock_apple_pie", "id")
+      expect(URI.parse(response.location).path).to eq("/mock_apple_pies/#{id}")
+    end
+  end
 end

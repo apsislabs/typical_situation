@@ -66,7 +66,7 @@ module TypicalSituation
         format.html do
           set_success_flash(:create)
           set_single_instance
-          changed_so_redirect || render
+          created_so_redirect || render
         end
 
         format.json do
@@ -140,6 +140,11 @@ module TypicalSituation
 
     def after_resource_destroyed_path(_resource)
       {action: :index}
+    end
+
+    def created_so_redirect
+      redirect_to after_resource_created_path(@resource)
+      true
     end
 
     # HTML response when @resource saved or updated.
