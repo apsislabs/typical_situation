@@ -30,7 +30,7 @@ Add to your **Gemfile**:
 
 ### Define your model and methods
 
-Basic usage is to declare the `typical_situation`, and then two required helper methods. Everything else is handled automatically.
+Basic usage is to declare `typical_situation` and define the required `collection` helper. Member lookup uses the model's configured single-column primary key within the security-scoped collection. Missing identifiers return `nil` from the lookup and produce a 404 response.
 
 ```rb
 class PostsController < ApplicationController
@@ -44,11 +44,6 @@ class PostsController < ApplicationController
   # The collection of model instances.
   def collection
     current_user.posts
-  end
-
-  # Find a model instance by ID.
-  def find_in_collection(id)
-    collection.find_by_id(id)
   end
 end
 ```
@@ -108,6 +103,7 @@ The library is split into modules:
 - [operations](https://github.com/mars/typical_situation/blob/master/lib/typical_situation/operations.rb) - loading, changing, & persisting the model
 - [permissions](https://github.com/mars/typical_situation/blob/master/lib/typical_situation/permissions.rb) - handling authorization to records and actions
 - [responses](https://github.com/mars/typical_situation/blob/master/lib/typical_situation/responses.rb) - HTTP responses & redirects
+- [serialization](lib/typical_situation/serialization.rb) - resource representation and JSON root wrapping
 
 #### Common Customization Hooks
 
@@ -122,7 +118,7 @@ For index actions, resources move through this pipeline:
 5. `paginate_resources` - pagination adapter hook
 6. `prepare_resources` - post-process the loaded records
 
-**Scoped Collections** - Restrict the base collection based on user permissions, tenancy, or other security boundaries:
+**Scoped Collections** - Restrict the base collection based on user permissions, tenancy, or other security boundaries. This scope applies to index and member lookup for show, edit, update, and destroy. Filtering, sorting, and pagination remain index-only. New/create use `collection`, so read-visibility conditions do not become creation defaults:
 
 ```ruby
 def scoped_resource
@@ -155,10 +151,12 @@ end
 **Custom Lookup** - Use different attributes for finding resources:
 
 ```ruby
-def find_resource(param)
-  collection.find_by!(slug: param)
+def find_in_collection(resources, slug)
+  resources.find_by(slug: slug)
 end
 ```
+
+The lookup receives `scoped_resource`; query that relation rather than `collection` to preserve security boundaries. Overriding `find_resource` replaces the security-aware lookup entirely.
 
 **Custom Redirects** - Control where users go after actions:
 
@@ -332,7 +330,9 @@ end
 
 #### Serialization
 
-Under the hood `TypicalSituation` calls `to_json` on your `ActiveRecord` models. This isn't always the optimal way to serialize resources, though, and so `TypicalSituation` offers a simple means of overriding the base Serialization --- either on an individual controller, or for your entire application.
+`TypicalSituation` calls `as_json(root: false)` by default. Override `serializable_resource` to return an unrooted Ruby `Hash` for a member or an `Array` of resource data for a collection. Rails encodes the response once; returning an encoded JSON string raises `TypeError`.
+
+`include_root?` controls wrapping with `model_type` for members and `plural_model_type` for collections. Error responses merge model errors under `errors`, independently of the custom serializer.
 
 ##### Alba
 
@@ -352,15 +352,11 @@ class MockApplePiesController < ApplicationController
   private
 
   def serializable_resource(resource)
-    MockApplePieResource.new(resource).serialize
+    MockApplePieResource.new(resource).to_h
   end
 
   def collection
     current_user.mock_apple_pies
-  end
-
-  def find_in_collection(id)
-    collection.find_by_id(id)
   end
 end
 ```
@@ -373,15 +369,19 @@ class MockApplePieIndexSerializer < ActiveModel::Serializer
 end
 
 module TypicalSituation
-  module Operations
+  module Serialization
     def serializable_resource(resource)
       if action_name == "index"
         ActiveModelSerializers::SerializableResource.new(
           resource,
-          each_serializer: MockApplePieIndexSerializer
-        )
+          each_serializer: MockApplePieIndexSerializer,
+          adapter: :attributes
+        ).as_json
       else
-        ActiveModelSerializers::SerializableResource.new(resource)
+        ActiveModelSerializers::SerializableResource.new(
+          resource,
+          adapter: :attributes
+        ).as_json
       end
     end
   end
@@ -401,10 +401,21 @@ class MockApplePiesController < ApplicationController
   include TypicalSituation
 
   def serializable_resource(resource)
-    MockApplePieSerializer.new(resource).serializable_hash
+    MockApplePieSerializer.new(resource).serializable_hash.fetch(:data)
   end
 end
 ```
+
+## Migrating Controller Hooks
+
+These hook changes are breaking:
+
+- Remove redundant `find_in_collection(id)` overrides, or change them to `find_in_collection(resources, id)` and query the supplied scoped relation.
+- `update_resource(resource, attrs)` must return a success boolean. `create_resource` and `destroy_resource` still return resources; success is determined by `persisted?` and `destroyed?`, respectively. Callback aborts return 422 even when no validation errors were added.
+- Overrides of `respond_as_created`, `respond_as_changed`, and `respond_as_gone` must accept the required `success:` keyword and pass it to `super` when delegating.
+- HTML creation uses `created_so_redirect` and `after_resource_created_path`; updates continue using `changed_so_redirect` and `after_resource_updated_path`.
+- Serialization methods now live in `TypicalSituation::Serialization`, not `Operations`. Return Ruby data from `serializable_resource`, not JSON strings or serializer objects. Overrides of `serialize_resource` should accept `errors: false` instead of an options hash.
+- Failed operations preserve model errors or add `typical_situation.errors.operation_failed` when none exist. Failed HTML destruction sets the error flash; JSON failures do not set flash messages.
 
 ## Development
 
