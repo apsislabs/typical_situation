@@ -72,16 +72,110 @@ RSpec.describe "TypicalSituation syntax sugar" do
       limited_controller.current_grandma = grandma
     end
 
-    it "only defines specified actions" do
-      expect(limited_controller).to respond_to(:index)
-      expect(limited_controller).to respond_to(:show)
-      expect(limited_controller).not_to respond_to(:create)
-      expect(limited_controller).not_to respond_to(:update)
-      expect(limited_controller).not_to respond_to(:destroy)
+    it "only exposes specified HTTP actions" do
+      expect(limited_controller_class.action_methods & TypicalSituation::ACTION_NAMES)
+        .to contain_exactly("index", "show")
     end
 
     it "still works with model_type functionality" do
       expect(limited_controller.send(:model_type)).to eq(:test_model)
+    end
+  end
+
+  describe "action configuration" do
+    let(:parent_class) do
+      Class.new(ApplicationController) do
+        include TypicalSituation
+
+        typical_rest :test_model
+      end
+    end
+
+    it "restricts inherited HTTP actions without changing the parent or siblings" do
+      parent_actions = parent_class.action_methods.dup
+      sibling = Class.new(parent_class)
+      child = Class.new(parent_class) do
+        typical_situation :test_model, only: [:show]
+      end
+
+      expect(child.action_methods).to contain_exactly("show")
+      expect(parent_class.action_methods).to eq(parent_actions)
+      expect(sibling.action_methods).to eq(parent_actions)
+    end
+
+    it "rejects dispatch to an excluded inherited action" do
+      stub_const("TestModelsController", parent_class)
+
+      child = Class.new(parent_class) do
+        typical_situation :test_model, only: [:show]
+      end
+
+      stub_const("LimitedTestModelsController", child)
+
+      expect { child.new.process(:destroy) }
+        .to raise_error(AbstractController::ActionNotFound)
+    end
+
+    [nil, [:show]].each do |only|
+      [:before, :after].each do |order|
+        it "preserves an explicit action defined #{order} configuration with only=#{only.inspect}" do
+          klass = Class.new(ApplicationController) do
+            include TypicalSituation
+          end
+          custom_show = proc { :custom }
+
+          klass.define_method(:show, custom_show) if order == :before
+          klass.typical_situation :test_model, only: only
+          klass.define_method(:show, custom_show) if order == :after
+
+          expect(klass.new.show).to eq(:custom)
+          expect(klass.action_methods).to include("show")
+        end
+      end
+    end
+
+    it "leaves custom nonstandard actions available" do
+      child = Class.new(parent_class) do
+        def preview
+          :preview
+        end
+
+        typical_situation :test_model, only: [:show]
+      end
+
+      expect(child.action_methods).to contain_exactly("show", "preview")
+    end
+
+    it "accepts string action names" do
+      parent_class.typical_situation :test_model, only: ["show"]
+
+      expect(parent_class.action_methods).to contain_exactly("show")
+    end
+
+    it "exposes no standard HTTP actions for an empty selection" do
+      parent_class.typical_situation :test_model, only: []
+
+      expect(parent_class.action_methods).to be_empty
+    end
+
+    it "rejects unknown actions without changing existing configuration" do
+      actions = parent_class.action_methods.dup
+
+      expect do
+        parent_class.typical_situation :other_model, only: [:show, :typo]
+      end.to raise_error(ArgumentError, "Unknown actions: typo")
+
+      expect(parent_class.action_methods).to eq(actions)
+      expect(parent_class.new.send(:model_type)).to eq(:test_model)
+    end
+
+    it "updates the exposed actions after Rails has cached them" do
+      parent_class.action_methods
+      parent_class.typical_situation :test_model, only: [:show]
+      expect(parent_class.action_methods).to contain_exactly("show")
+
+      parent_class.typical_rest :test_model
+      expect(parent_class.action_methods).to include("create", "update", "destroy")
     end
   end
 
@@ -111,14 +205,9 @@ RSpec.describe "TypicalSituation syntax sugar" do
       expect(rest_controller.send(:model_type)).to eq(:test_model)
     end
 
-    it "includes all REST actions" do
-      expect(rest_controller).to respond_to(:index)
-      expect(rest_controller).to respond_to(:show)
-      expect(rest_controller).to respond_to(:new)
-      expect(rest_controller).to respond_to(:create)
-      expect(rest_controller).to respond_to(:edit)
-      expect(rest_controller).to respond_to(:update)
-      expect(rest_controller).to respond_to(:destroy)
+    it "exposes all REST actions" do
+      expect(rest_controller_class.action_methods & TypicalSituation::ACTION_NAMES)
+        .to contain_exactly("index", "show", "new", "create", "edit", "update", "destroy")
     end
 
     it "is equivalent to typical_situation without only parameter" do
@@ -139,9 +228,7 @@ RSpec.describe "TypicalSituation syntax sugar" do
 
       expect(rest_controller.send(:model_type)).to eq(equivalent_controller.send(:model_type))
 
-      %i[index show new create edit update destroy].each do |action|
-        expect(rest_controller.respond_to?(action)).to eq(equivalent_controller.respond_to?(action))
-      end
+      expect(rest_controller_class.action_methods).to eq(equivalent_class.action_methods)
     end
   end
 
@@ -171,17 +258,9 @@ RSpec.describe "TypicalSituation syntax sugar" do
       expect(crud_controller.send(:model_type)).to eq(:test_model)
     end
 
-    it "includes only CRUD actions" do
-      expect(crud_controller).to respond_to(:create)
-      expect(crud_controller).to respond_to(:show)
-      expect(crud_controller).to respond_to(:update)
-      expect(crud_controller).to respond_to(:destroy)
-    end
-
-    it "does not include non-CRUD actions" do
-      expect(crud_controller).not_to respond_to(:index)
-      expect(crud_controller).not_to respond_to(:new)
-      expect(crud_controller).not_to respond_to(:edit)
+    it "exposes only CRUD actions" do
+      expect(crud_controller_class.action_methods & TypicalSituation::ACTION_NAMES)
+        .to contain_exactly("create", "show", "update", "destroy")
     end
 
     it "is equivalent to typical_situation with CRUD only actions" do
@@ -202,9 +281,7 @@ RSpec.describe "TypicalSituation syntax sugar" do
 
       expect(crud_controller.send(:model_type)).to eq(equivalent_controller.send(:model_type))
 
-      %i[index show new create edit update destroy].each do |action|
-        expect(crud_controller.respond_to?(action)).to eq(equivalent_controller.respond_to?(action))
-      end
+      expect(crud_controller_class.action_methods).to eq(equivalent_class.action_methods)
     end
   end
 
@@ -241,21 +318,11 @@ RSpec.describe "TypicalSituation syntax sugar" do
     let(:crud_controller) { crud_class.new.tap { |c| c.current_grandma = grandma } }
 
     it "typical_rest includes more actions than typical_crud" do
-      rest_actions = %i[index show new create edit update destroy].select do |action|
-        rest_controller.respond_to?(action)
-      end
-
-      crud_actions = %i[index show new create edit update destroy].select do |action|
-        crud_controller.respond_to?(action)
-      end
-
-      expect(rest_actions.count).to be > crud_actions.count
+      expect(rest_class.action_methods.count).to be > crud_class.action_methods.count
     end
 
     it "typical_crud excludes form-related actions" do
-      expect(crud_controller).not_to respond_to(:new)
-      expect(crud_controller).not_to respond_to(:edit)
-      expect(crud_controller).not_to respond_to(:index)
+      expect(crud_class.action_methods).not_to include("new", "edit", "index")
     end
 
     it "both helpers work with model_type functionality" do

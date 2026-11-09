@@ -13,6 +13,8 @@ module TypicalSituation
   class Error < StandardError; end
   class ActionForbidden < Error; end
 
+  ACTION_NAMES = Actions.public_instance_methods(false).map(&:to_s).freeze
+
   include Identity
   include Permissions
   include FlashMessages
@@ -22,6 +24,11 @@ module TypicalSituation
 
   def self.included(base)
     add_rescues(base)
+
+    base.class_attribute :typical_action_names,
+      instance_accessor: false,
+      default: ACTION_NAMES
+
     base.extend(ClassMethods)
   end
 
@@ -39,20 +46,23 @@ module TypicalSituation
     #     :post
     #   end
     def typical_situation(model_type_symbol, only: nil)
-      define_method :model_type do
-        model_type_symbol
+      actions = only.nil? ? ACTION_NAMES : Array(only).map(&:to_s)
+      unknown = actions - ACTION_NAMES
+
+      if unknown.any?
+        raise ArgumentError, "Unknown actions: #{unknown.join(", ")}"
       end
+
+      self.typical_action_names = actions.freeze
+
+      define_method(:model_type) { model_type_symbol }
       protected :model_type
 
-      if only
-        only.each do |action|
-          if TypicalSituation::Actions.method_defined?(action)
-            define_method(action, TypicalSituation::Actions.instance_method(action))
-          end
-        end
-      else
-        include TypicalSituation::Actions
-      end
+      include TypicalSituation::Actions
+    end
+
+    def action_methods
+      super - (ACTION_NAMES - typical_action_names)
     end
 
     def typical_rest(model_type_symbol)
