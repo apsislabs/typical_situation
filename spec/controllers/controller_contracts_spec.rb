@@ -248,6 +248,32 @@ RSpec.describe MockApplePiesController, type: :controller do
     end
   end
 
+  describe "custom mutation responders" do
+    {
+      create: :respond_as_created,
+      update: :respond_as_changed,
+      destroy: :respond_as_gone
+    }.each do |action, responder|
+      it "normalizes aborted #{action} errors before invoking the responder" do
+        controller.define_singleton_method(responder) do |success:|
+          render json: {success: success, errors: @resource.errors.as_json},
+            status: :unprocessable_entity
+        end
+        callback_kind = (action == :destroy) ? :destroy : :save
+
+        with_aborted_callback(callback_kind) do
+          dispatch_mutation(action, :json)
+        end
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body.fetch("success")).to be(false)
+        expect(response.parsed_body.fetch("errors")).to eq(
+          "base" => [I18n.t("typical_situation.errors.operation_failed")]
+        )
+      end
+    end
+  end
+
   describe "slug redirects" do
     {create: :create_resource, update: :find_resource}.each do |action, operation|
       it "uses to_param for the HTML #{action} destination" do

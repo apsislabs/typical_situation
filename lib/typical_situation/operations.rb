@@ -107,6 +107,17 @@ module TypicalSituation
 
     private
 
+    def normalize_operation_result(resource, success:)
+      if !success && resource.errors.empty?
+        resource.errors.add(
+          :base,
+          I18n.t("typical_situation.errors.operation_failed")
+        )
+      end
+
+      success
+    end
+
     def apply_sorting(resources)
       return resources unless default_sorting_attribute
       resources.order(default_sorting_attribute => default_sorting_direction)

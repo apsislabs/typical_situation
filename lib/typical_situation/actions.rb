@@ -35,7 +35,11 @@ module TypicalSituation
       get_resource
       raise TypicalSituation::ActionForbidden unless authorized?(:update, @resource)
 
-      success = update_resource(@resource, update_params)
+      success = normalize_operation_result(
+        @resource,
+        success: update_resource(@resource, update_params)
+      )
+
       respond_as_changed(success: success)
     end
 
@@ -44,14 +48,26 @@ module TypicalSituation
       raise TypicalSituation::ActionForbidden unless authorized?(:destroy, @resource)
 
       destroy_resource(@resource)
-      respond_as_gone(success: @resource.destroyed?)
+
+      success = normalize_operation_result(
+        @resource,
+        success: @resource.destroyed?
+      )
+
+      respond_as_gone(success: success)
     end
 
     def create
       raise TypicalSituation::ActionForbidden unless authorized?(:create)
 
       @resource = create_resource(create_params)
-      respond_as_created(success: @resource.persisted?)
+
+      success = normalize_operation_result(
+        @resource,
+        success: @resource.persisted?
+      )
+
+      respond_as_created(success: success)
     end
   end
 end

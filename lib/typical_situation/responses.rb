@@ -163,13 +163,6 @@ module TypicalSituation
     private
 
     def respond_as_failure(action)
-      if @resource.errors.empty?
-        @resource.errors.add(
-          :base,
-          I18n.t("typical_situation.errors.operation_failed")
-        )
-      end
-
       set_error_flash if action == :destroy && request.format.html?
       respond_as_error
     end
