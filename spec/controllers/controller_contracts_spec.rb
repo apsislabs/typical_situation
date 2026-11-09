@@ -155,4 +155,64 @@ RSpec.describe MockApplePiesController, type: :controller do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe "aborted persistence" do
+    %i[create update destroy].each do |action|
+      %i[html json].each do |format|
+        it "rejects aborted #{action} as #{format} without changing records" do
+          original = pie.attributes
+          count = MockApplePie.count
+          callback_kind = (action == :destroy) ? :destroy : :save
+
+          with_aborted_callback(callback_kind) do
+            dispatch_mutation(action, format)
+          end
+
+          expect(response).to have_http_status(:unprocessable_entity)
+          expect(flash[:notice]).to be_nil
+          expect(MockApplePie.count).to eq(count)
+          expect(pie.reload.attributes).to eq(original)
+
+          if format == :json
+            errors = response.parsed_body.dig("mock_apple_pie", "errors")
+            expect(errors.fetch("base")).not_to be_empty
+          end
+        end
+      end
+    end
+
+    it "preserves callback-provided errors" do
+      pie
+
+      with_aborted_callback(:save, message: "Updates are locked") do
+        dispatch_mutation(:update, :json)
+      end
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body.dig("mock_apple_pie", "errors")).to eq(
+        "base" => ["Updates are locked"]
+      )
+    end
+
+    it "preserves validation errors without adding a generic error" do
+      post :create,
+        params: {mock_apple_pie: {ingredients: ""}},
+        format: :json
+
+      expect(response).to have_http_status(:unprocessable_entity)
+
+      errors = response.parsed_body.dig("mock_apple_pie", "errors")
+      expect(errors.fetch("ingredients")).not_to be_empty
+      expect(errors).not_to have_key("base")
+    end
+
+    it "does not turn unexpected exceptions into validation failures" do
+      allow(controller).to receive(:update_resource)
+        .and_raise(RuntimeError, "database unavailable")
+
+      expect do
+        dispatch_mutation(:update, :json)
+      end.to raise_error(RuntimeError, "database unavailable")
+    end
+  end
 end

@@ -6,9 +6,9 @@ class MockApplePie < ActiveRecord::Base
   before_destroy :prevent_deleting_real_apple_pie
 
   def prevent_deleting_real_apple_pie
-    return true unless /real apple/i === ingredients
+    return unless /real apple/i.match?(ingredients)
 
     errors.add(:base, "can't be deleted because it contains real apple")
-    false
+    throw :abort
   end
 end
