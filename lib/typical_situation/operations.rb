@@ -86,7 +86,6 @@ module TypicalSituation
 
     def destroy_resource(resource)
       resource.destroy
-      collection.reload if resource.destroyed?
       resource
     end
 

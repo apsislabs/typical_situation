@@ -216,6 +216,38 @@ RSpec.describe MockApplePiesController, type: :controller do
     end
   end
 
+  describe "destroy operations" do
+    it "completes deletion without reloading the collection" do
+      id = pie.id
+      resources = grandma.mock_apple_pies
+      allow(controller).to receive(:collection).and_return(resources)
+      allow(resources).to receive(:reload).and_raise("unexpected collection reload")
+
+      dispatch_mutation(:destroy, :json)
+
+      expect(response).to have_http_status(:no_content)
+      expect(MockApplePie.exists?(id)).to be(false)
+    end
+
+    it "returns the resource after successful destruction" do
+      resource = pie
+
+      expect(controller.send(:destroy_resource, resource)).to equal(resource)
+      expect(resource).to be_destroyed
+    end
+
+    it "returns the resource after aborted destruction" do
+      resource = pie
+
+      with_aborted_callback(:destroy) do
+        expect(controller.send(:destroy_resource, resource)).to equal(resource)
+      end
+
+      expect(resource).not_to be_destroyed
+      expect(MockApplePie.exists?(resource.id)).to be(true)
+    end
+  end
+
   describe "redirect hooks" do
     before do
       controller.define_singleton_method(:after_resource_created_path) do |_resource|
