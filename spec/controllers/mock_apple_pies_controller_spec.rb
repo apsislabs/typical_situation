@@ -288,12 +288,12 @@ RSpec.describe MockApplePiesController, type: :controller do
 
       it "after_resource_created_path returns show path" do
         path = controller.send(:after_resource_created_path, pie)
-        expect(path).to eq({action: :show, id: pie.id})
+        expect(path).to eq({action: :show, id: pie.to_param})
       end
 
       it "after_resource_updated_path returns show path" do
         path = controller.send(:after_resource_updated_path, pie)
-        expect(path).to eq({action: :show, id: pie.id})
+        expect(path).to eq({action: :show, id: pie.to_param})
       end
 
       it "after_resource_destroyed_path returns index path" do

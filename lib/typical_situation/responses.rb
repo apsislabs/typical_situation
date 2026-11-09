@@ -131,11 +131,11 @@ module TypicalSituation
     end
 
     def after_resource_created_path(resource)
-      {action: :show, id: resource.id}
+      {action: :show, id: resource.to_param}
     end
 
     def after_resource_updated_path(resource)
-      {action: :show, id: resource.id}
+      {action: :show, id: resource.to_param}
     end
 
     def after_resource_destroyed_path(_resource)

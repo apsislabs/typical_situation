@@ -248,6 +248,22 @@ RSpec.describe MockApplePiesController, type: :controller do
     end
   end
 
+  describe "slug redirects" do
+    {create: :create_resource, update: :find_resource}.each do |action, operation|
+      it "uses to_param for the HTML #{action} destination" do
+        allow(controller).to receive(operation).and_wrap_original do |original, *args|
+          original.call(*args).tap do |resource|
+            resource.define_singleton_method(:to_param) { "pie-slug" }
+          end
+        end
+
+        dispatch_mutation(action, :html)
+
+        expect(response).to redirect_to(action: :show, id: "pie-slug")
+      end
+    end
+  end
+
   describe "redirect hooks" do
     before do
       controller.define_singleton_method(:after_resource_created_path) do |_resource|
