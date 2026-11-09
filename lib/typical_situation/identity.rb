@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module TypicalSituation
-  # These Identity methods must be defined for each implementation.
+  # Model identity, collection, and request configuration.
   module Identity
     protected
 
@@ -43,9 +43,9 @@ module TypicalSituation
       raise(NotImplementedError, "#collection must be defined in the TypicalSituation implementation.")
     end
 
-    # Find a model instance by ID.
-    def find_in_collection(_id)
-      raise(NotImplementedError, "#find_in_collection must be defined in the TypicalSituation implementation.")
+    # Find a model instance by its configured primary key.
+    def find_in_collection(resources, identifier)
+      resources.find_by(resources.primary_key => identifier)
     end
 
     def include_root?

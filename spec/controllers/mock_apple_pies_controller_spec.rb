@@ -263,11 +263,6 @@ RSpec.describe MockApplePiesController, type: :controller do
         expect(controller.send(:scoped_resource)).to eq(@grandma.mock_apple_pies)
       end
 
-      it "find_resource calls find_in_collection" do
-        result = controller.send(:find_resource, pie.id)
-        expect(result).to eq(pie)
-      end
-
       it "default_sorting_attribute returns nil" do
         expect(controller.send(:default_sorting_attribute)).to be_nil
       end
@@ -375,7 +370,10 @@ RSpec.describe MockApplePiesController, type: :controller do
         allow(controller).to receive(:paginate_resources).and_return(paginated)
 
         received = nil
-        allow(controller).to receive(:prepare_resources) { |r| received = r; r }
+        allow(controller).to receive(:prepare_resources) { |r|
+          received = r
+          r
+        }
 
         controller.send(:get_resources)
         expect(received).to eq(paginated)

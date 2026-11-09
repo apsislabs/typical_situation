@@ -11,7 +11,7 @@ module TypicalSituation
     end
 
     def find_resource(param)
-      find_in_collection(param)
+      find_in_collection(scoped_resource, param)
     end
 
     def default_sorting_attribute

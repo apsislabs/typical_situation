@@ -13,9 +13,4 @@ class MockApplePiesController < ApplicationController
   def collection
     current_grandma.mock_apple_pies
   end
-
-  # Find a model instance by ID.
-  def find_in_collection(id)
-    collection.find_by_id(id)
-  end
 end

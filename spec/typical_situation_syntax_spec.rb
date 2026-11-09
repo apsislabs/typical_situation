@@ -15,10 +15,6 @@ RSpec.describe "TypicalSituation syntax sugar" do
         def collection
           current_grandma.mock_apple_pies
         end
-
-        def find_in_collection(id)
-          collection.find_by_id(id)
-        end
       end
     end
 
@@ -66,10 +62,6 @@ RSpec.describe "TypicalSituation syntax sugar" do
         def collection
           current_grandma.mock_apple_pies
         end
-
-        def find_in_collection(id)
-          collection.find_by_id(id)
-        end
       end
     end
 
@@ -104,10 +96,6 @@ RSpec.describe "TypicalSituation syntax sugar" do
 
         def collection
           current_grandma.mock_apple_pies
-        end
-
-        def find_in_collection(id)
-          collection.find_by_id(id)
         end
       end
     end
@@ -144,10 +132,6 @@ RSpec.describe "TypicalSituation syntax sugar" do
         def collection
           current_grandma.mock_apple_pies
         end
-
-        def find_in_collection(id)
-          collection.find_by_id(id)
-        end
       end
 
       equivalent_controller = equivalent_class.new
@@ -172,10 +156,6 @@ RSpec.describe "TypicalSituation syntax sugar" do
 
         def collection
           current_grandma.mock_apple_pies
-        end
-
-        def find_in_collection(id)
-          collection.find_by_id(id)
         end
       end
     end
@@ -215,10 +195,6 @@ RSpec.describe "TypicalSituation syntax sugar" do
         def collection
           current_grandma.mock_apple_pies
         end
-
-        def find_in_collection(id)
-          collection.find_by_id(id)
-        end
       end
 
       equivalent_controller = equivalent_class.new
@@ -245,10 +221,6 @@ RSpec.describe "TypicalSituation syntax sugar" do
         def collection
           current_grandma.mock_apple_pies
         end
-
-        def find_in_collection(id)
-          collection.find_by_id(id)
-        end
       end
     end
 
@@ -261,10 +233,6 @@ RSpec.describe "TypicalSituation syntax sugar" do
 
         def collection
           current_grandma.mock_apple_pies
-        end
-
-        def find_in_collection(id)
-          collection.find_by_id(id)
         end
       end
     end
@@ -312,10 +280,6 @@ RSpec.describe "TypicalSituation syntax sugar" do
         def collection
           current_grandma.mock_apple_pies
         end
-
-        def find_in_collection(id)
-          collection.find_by_id(id)
-        end
       end
     end
 
@@ -329,10 +293,6 @@ RSpec.describe "TypicalSituation syntax sugar" do
 
         def collection
           current_grandma.mock_apple_pies
-        end
-
-        def find_in_collection(id)
-          collection.find_by_id(id)
         end
       end
     end
