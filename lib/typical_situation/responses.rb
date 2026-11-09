@@ -39,42 +39,40 @@ module TypicalSituation
       end
     end
 
-    def respond_as_changed
-      if has_errors?
-        respond_as_error
-      else
-        respond_to do |format|
-          yield(format) if block_given?
+    def respond_as_changed(success:)
+      return respond_as_failure(:update) unless success
 
-          format.html do
-            set_success_flash(:update)
-            set_single_instance
-            changed_so_redirect || render
-          end
-          format.json do
-            render json: serialize_resource(@resource)
-          end
+      respond_to do |format|
+        yield(format) if block_given?
+
+        format.html do
+          set_success_flash(:update)
+          set_single_instance
+          changed_so_redirect || render
+        end
+
+        format.json do
+          render json: serialize_resource(@resource)
         end
       end
     end
 
-    def respond_as_created
-      if has_errors?
-        respond_as_error
-      else
-        respond_to do |format|
-          yield(format) if block_given?
+    def respond_as_created(success:)
+      return respond_as_failure(:create) unless success
 
-          format.html do
-            set_success_flash(:create)
-            set_single_instance
-            changed_so_redirect || render
-          end
-          format.json do
-            render json: serialize_resource(@resource),
-              location: location_url,
-              status: :created
-          end
+      respond_to do |format|
+        yield(format) if block_given?
+
+        format.html do
+          set_success_flash(:create)
+          set_single_instance
+          created_so_redirect || render
+        end
+
+        format.json do
+          render json: serialize_resource(@resource),
+            location: location_url,
+            status: :created
         end
       end
     end
@@ -89,27 +87,25 @@ module TypicalSituation
             status: :unprocessable_entity
         end
         format.json do
-          render json: serialize_resource(@resource, methods: [:errors]),
+          render json: serialize_resource(@resource, errors: true),
             status: :unprocessable_entity
         end
       end
     end
 
-    def respond_as_gone
-      if has_errors?
-        set_error_flash
-        respond_as_error
-      else
-        respond_to do |format|
-          yield(format) if block_given?
+    def respond_as_gone(success:)
+      return respond_as_failure(:destroy) unless success
 
-          format.html do
-            set_single_instance
-            gone_so_redirect || render
-          end
-          format.json do
-            head :no_content
-          end
+      respond_to do |format|
+        yield(format) if block_given?
+
+        format.html do
+          set_single_instance
+          gone_so_redirect || render
+        end
+
+        format.json do
+          head :no_content
         end
       end
     end
@@ -135,15 +131,20 @@ module TypicalSituation
     end
 
     def after_resource_created_path(resource)
-      {action: :show, id: resource.id}
+      {action: :show, id: resource.to_param}
     end
 
     def after_resource_updated_path(resource)
-      {action: :show, id: resource.id}
+      {action: :show, id: resource.to_param}
     end
 
     def after_resource_destroyed_path(_resource)
       {action: :index}
+    end
+
+    def created_so_redirect
+      redirect_to after_resource_created_path(@resource)
+      true
     end
 
     # HTML response when @resource saved or updated.
@@ -154,10 +155,16 @@ module TypicalSituation
 
     # HTML response when @resource deleted.
     def gone_so_redirect
-      set_error_flash if has_errors?
-      set_success_flash(:destroy) unless has_errors?
+      set_success_flash(:destroy)
       redirect_to after_resource_destroyed_path(@resource)
       true
+    end
+
+    private
+
+    def respond_as_failure(action)
+      set_error_flash if action == :destroy && request.format.html?
+      respond_as_error
     end
   end
 end

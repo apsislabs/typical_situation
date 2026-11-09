@@ -11,7 +11,7 @@ module TypicalSituation
     end
 
     def find_resource(param)
-      find_in_collection(param)
+      find_in_collection(scoped_resource, param)
     end
 
     def default_sorting_attribute
@@ -86,7 +86,6 @@ module TypicalSituation
 
     def destroy_resource(resource)
       resource.destroy
-      collection.reload if resource.errors.empty?
       resource
     end
 
@@ -102,27 +101,22 @@ module TypicalSituation
       @model_class ||= model_type.to_s.camelize.constantize
     end
 
-    def serialize_resource(resource, options = {})
-      serializable_resource(resource).to_json(options.merge(root: include_root?))
-    end
-
-    def serialize_resources(resources)
-      if include_root?
-        return {plural_model_type => serializable_resource(resources)}
-      end
-
-      serializable_resource(resources).to_json(root: false)
-    end
-
-    def serializable_resource(resource)
-      resource
-    end
-
     def id_param
       params[:id]
     end
 
     private
+
+    def normalize_operation_result(resource, success:)
+      if !success && resource.errors.empty?
+        resource.errors.add(
+          :base,
+          I18n.t("typical_situation.errors.operation_failed")
+        )
+      end
+
+      success
+    end
 
     def apply_sorting(resources)
       return resources unless default_sorting_attribute

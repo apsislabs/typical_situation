@@ -1,5 +1,7 @@
 en:
   typical_situation:
+    errors:
+      operation_failed: "Operation could not be completed"
     flash:
       create:
         success: "%{resource} was successfully created"
