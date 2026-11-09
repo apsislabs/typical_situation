@@ -248,4 +248,72 @@ RSpec.describe MockApplePiesController, type: :controller do
       expect(URI.parse(response.location).path).to eq("/mock_apple_pies/#{id}")
     end
   end
+
+  describe "serialization" do
+    [true, false].each do |root|
+      [:default, :custom].each do |serializer|
+        context "#{serializer} serializer with root=#{root}" do
+          before do
+            controller.define_singleton_method(:include_root?) { root }
+
+            if serializer == :custom
+              controller.define_singleton_method(:serializable_resource) do |resource|
+                resource.as_json(root: false, only: [:id, :ingredients])
+              end
+            end
+          end
+
+          it "returns member data rather than encoded JSON" do
+            get :show, params: {id: pie.id}, format: :json
+
+            body = response.parsed_body
+            data = root ? body.fetch("mock_apple_pie") : body
+
+            expect(response).to have_http_status(:ok)
+            expect(data).to include(
+              "id" => pie.id,
+              "ingredients" => pie.ingredients
+            )
+            expect(data).not_to have_key("grandma_id") if serializer == :custom
+          end
+
+          it "returns collection data rather than encoded JSON" do
+            get :index, format: :json
+
+            body = response.parsed_body
+            data = root ? body.fetch("mock_apple_pies") : body
+
+            expect(response).to have_http_status(:ok)
+            expect(data).to contain_exactly(
+              a_hash_including("id" => pie.id)
+            )
+          end
+
+          it "includes errors independently of the serializer" do
+            post :create,
+              params: {mock_apple_pie: {ingredients: ""}},
+              format: :json
+
+            body = response.parsed_body
+            data = root ? body.fetch("mock_apple_pie") : body
+
+            expect(response).to have_http_status(:unprocessable_entity)
+            expect(data.fetch("errors").fetch("ingredients")).not_to be_empty
+          end
+        end
+      end
+    end
+
+    %i[show index].each do |action|
+      it "rejects encoded JSON from the #{action} serializer" do
+        controller.define_singleton_method(:serializable_resource) do |resource|
+          resource.to_json
+        end
+
+        expect do
+          get action, params: {id: pie.id}, format: :json
+        end.to raise_error(TypeError, /serializable_resource must return/)
+      end
+    end
+  end
 end

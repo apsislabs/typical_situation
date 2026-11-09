@@ -87,7 +87,7 @@ module TypicalSituation
             status: :unprocessable_entity
         end
         format.json do
-          render json: serialize_resource(@resource, methods: [:errors]),
+          render json: serialize_resource(@resource, errors: true),
             status: :unprocessable_entity
         end
       end

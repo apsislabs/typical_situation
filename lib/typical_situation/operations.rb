@@ -102,22 +102,6 @@ module TypicalSituation
       @model_class ||= model_type.to_s.camelize.constantize
     end
 
-    def serialize_resource(resource, options = {})
-      serializable_resource(resource).to_json(options.merge(root: include_root?))
-    end
-
-    def serialize_resources(resources)
-      if include_root?
-        return {plural_model_type => serializable_resource(resources)}
-      end
-
-      serializable_resource(resources).to_json(root: false)
-    end
-
-    def serializable_resource(resource)
-      resource
-    end
-
     def id_param
       params[:id]
     end
